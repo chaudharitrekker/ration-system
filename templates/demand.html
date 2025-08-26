@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Place Demand</title>
+</head>
+<body>
+    <h1>Place Demand</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>
+            Ration ID:<br>
+            <input type="text" name="ration_id" required>
+        </p>
+        <p>
+            {{ form.sugar_kg.label }}<br>
+            {{ form.sugar_kg(size=20) }}
+        </p>
+        <p>
+            {{ form.oil_kg.label }}<br>
+            {{ form.oil_kg(size=20) }}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    <p><a href="{{ url_for('home') }}">Back</a></p>
+</body>
+</html>

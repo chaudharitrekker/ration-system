@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Employee Approvals</title>
+</head>
+<body>
+    <h1>Admin - Approve Employees</h1>
+
+    {% for emp in employees %}
+        <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+            <p><b>Ration ID:</b> {{ emp.ration_id }}</p>
+            <p><b>Name:</b> {{ emp.name }}</p>
+            <p><b>Contact:</b> {{ emp.contact_no }}</p>
+            <p><b>Address:</b> {{ emp.address }}</p>
+            <p><b>Status:</b> {{ emp.status }}</p>
+
+            {% if emp.status == "Pending" %}
+                <form method="POST" action="{{ url_for('approve_employee', emp_id=emp.id) }}">
+                    <button type="submit">Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('reject_employee', emp_id=emp.id) }}">
+                    <button type="submit">Reject</button>
+                </form>
+            {% elif emp.status == "Active" %}
+                ✅ Approved
+            {% elif emp.status == "Rejected" %}
+                ❌ Rejected
+            {% endif %}
+        </div>
+    {% endfor %}
+    <p><a href="{{ url_for('admin_master') }}">⬅ Back to Admin Dashboard</a></p>
+</body>
+</html>

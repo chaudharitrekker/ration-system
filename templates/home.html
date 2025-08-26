@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>e-Rashan System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808); /* Tricolour */
+            color: #2c3e50;
+            padding: 30px 0;
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            text-decoration: none;
+            border-top: 5px solid transparent;
+        }
+
+        /* Give each card a tricolour accent */
+        .card:nth-child(1) { border-top-color: #FF9933; }  /* Saffron */
+        .card:nth-child(2) { border-top-color: #138808; }  /* Green */
+        .card:nth-child(3) { border-top-color: #000080; }  /* Navy Blue */
+        .card:nth-child(4) { border-top-color: #FF9933; }  /* Saffron again */
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            background: #f9f9f9;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808);
+            font-weight: bold;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Welcome to e-Rashan System 🛒
+    </header>
+
+    <div class="container">
+        <a class="card" href="{{ url_for('register') }}">
+            📝 New Registration
+        </a>
+        <a class="card" href="{{ url_for('demand') }}">
+            📦 Place Order
+        </a>
+        <a class="card" href="{{ url_for('admin_login') }}">
+            🔑 Admin Login
+        </a>
+        <a class="card" href="{{ url_for('delivery_login') }}">
+            🚚 Delivery
+        </a>
+    </div>
+
+    <footer>
+        🇮🇳 e-Rashan Portal | Serving with Pride
+    </footer>
+</body>
+</html>
+
