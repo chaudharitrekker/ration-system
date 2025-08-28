@@ -18,31 +18,6 @@ The system allows users to request ration items, approvers to validate requests,
 
     🎨 Responsive UI – Clean HTML, CSS (custom theme with 🇮🇳 colors).
 
-📂 Project Structure
-
-ration-demand-system-flask/
-├── app/
-│   ├── __init__.py          # App factory, config, DB init
-│   ├── config.py            # Config classes (dev, prod) with env vars (e.g., DB_URI)
-│   ├── models/              # SQLAlchemy models
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── ration.py
-│   │   └── demand.py
-│   ├── routes/              # Flask routes (views)
-│   │   ├── auth.py
-│   │   ├── admin.py
-│   │   ├── supplier.py
-│   │   └── employee.py
-│   ├── templates/           # HTML Templates (Jinja2)
-│   └── static/              # CSS, JS, Images
-│       └── css/
-│           └── style.css
-├── migrations/              # Alembic migrations
-├── requirements.txt         # Python dependencies
-├── run.py                   # Entry point
-└── README.md                # Project documentation
-
 ⚙️ Installation & Setup
 1️⃣ Clone the repository
 
