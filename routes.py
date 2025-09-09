@@ -1,69 +1,72 @@
-from flask import Flask, render_template, request, redirect, url_for, flash , session 
+from flask import render_template, request, redirect, url_for, flash, session
 from app import app, db
-from models import Employee, Demand
-from forms import RegistrationForm, DemandForm
+from models import Demand
+from forms import LoginForm, DemandForm
+from ldap3 import Server, Connection, ALL
+
+
+
+LDAP_SERVER = "ldap://localhost:389"
+LDAP_USER_DN = "cn=admin,dc=navy,dc=local"
+LDAP_PASSWORD = "admin123"
+BASE_DN = "dc=navy,dc=local"
 
 app.secret_key = "super_secret_key"
 
 @app.route("/")
 def home():
-    employees = Employee.query.all()
-    return render_template("home.html", employees=employees)
+    return render_template("home.html")
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    form = RegistrationForm()
+@app.route("/login", methods=["GET", "POST"])
+def user_login():
+    form = LoginForm()
+    error = None
     if form.validate_on_submit():
-        ration_id = generate_ration_id()
-        new_emp = Employee(
-            ration_id=ration_id,
-            name=form.name.data,
-            contact_no=form.contact_no.data,
-            address=form.address.data,
-            status="Pending"
-        )
-        db.session.add(new_emp)
-        db.session.commit()
-        return f"""
-        ✅ Registration successful! Your Ration ID is {ration_id}. Please wait for admin approval. 
-        <br><br>
-        <a href='{url_for('home')}'>⬅️ Back to Home page</a>
-        """
-        #return f"✅ Registration successful! Your Ration ID is {ration_id}. Please wait for admin approval."
-    return render_template("register.html", form=form)
+        employee_code = form.employee_code.data
+        password = form.password.data
 
-def generate_ration_id():
-    last_emp = Employee.query.order_by(Employee.id.desc()).first()
-    if last_emp and last_emp.ration_id:
-        last_num = int(last_emp.ration_id.replace("RAT", ""))
-        new_num = last_num + 1
-    else:
-        new_num = 1001
-    return f"RAT{new_num}"
+        try:
+            # Step 1: Connect as admin to search DN
+            server = Server(LDAP_SERVER, get_info=ALL)
+            conn = Connection(server, user=LDAP_USER_DN, password=LDAP_PASSWORD, auto_bind=True)
 
+            # Step 2: Search user by employeeNumber
+            conn.search(BASE_DN, f"(employeeNumber={employee_code})", attributes=["uid"])
+            if not conn.entries:
+                error = "❌ Employee not found."
+            else:
+                user_dn = conn.entries[0].entry_dn
+
+                # Step 3: Try binding with user DN + entered password
+                user_conn = Connection(server, user=user_dn, password=password)
+                if user_conn.bind():
+                    session["employee_code"] = employee_code
+                    flash("✅ Login successful!", "success")
+                    return redirect(url_for("demand"))
+                else:
+                    error = "❌ Invalid credentials."
+        except Exception as e:
+            error = f"LDAP error: {str(e)}"
+
+    return render_template("login.html", role="User", form=form, error=error)
    
 @app.route("/demand", methods=["GET", "POST"])
 def demand():
+    if not session.get("employee_code"):
+        flash("⚠️ Please login first!", "warning")
+        return redirect(url_for("user_login"))
+
     form = DemandForm()
     if form.validate_on_submit():
-        ration_id = request.form.get("ration_id")
-        employee = Employee.query.filter_by(ration_id=ration_id).first()
-
-        if not employee:
-            return render_template("message.html", message="❌ Invalid Ration ID. Please register first.")
-
-        if employee.status != "Active":
-            return render_template("message.html", message=f"⚠️ Your registration status is {employee.status}. You cannot place a demand.")
-
         new_demand = Demand(
             requested_sugar=form.sugar_kg.data,
             requested_oil=form.oil_kg.data,
-            employee_id=employee.id
+            employee_code=session["employee_code"]  # ✅ ab sahi column use ho raha hai
         )
         db.session.add(new_demand)
         db.session.commit()
         return render_template("message.html", message="✅ Demand placed successfully! Wait for admin approval.")
-        
+
     return render_template("demand.html", form=form)
 
 @app.route("/approve_demand/<int:demand_id>", methods=["POST"])
@@ -109,24 +112,7 @@ def delivery_page():
         return redirect(url_for("delivery_login"))
     demands = Demand.query.filter_by(status="Approved").all()        
     return render_template("delivery.html", demands=demands)
-@app.route("/admin/employees")
-def admin_employees():
-    employees = Employee.query.all()
-    return render_template("admin_employees.html", employees=employees)
 
-@app.route("/admin/approve/<int:emp_id>", methods=["POST"])
-def approve_employee(emp_id):
-    emp = Employee.query.get_or_404(emp_id)
-    emp.status = "Active"
-    db.session.commit()
-    return redirect(url_for("admin_employees"))
-
-@app.route("/admin/reject/<int:emp_id>", methods=["POST"])
-def reject_employee(emp_id):
-    emp = Employee.query.get_or_404(emp_id)
-    emp.status = "Rejected"
-    db.session.commit()
-    return redirect(url_for("admin_employees"))
 
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():

@@ -8,7 +8,7 @@
 
     {% for demand in demands %}
         <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-            <p><b>Employee:</b> {{ demand.employee.name }}</p>
+            <p><b>Employee Code:</b> {{ demand.employee_code }}</p>
             <p><b>Requested:</b> Sugar = {{ demand.requested_sugar }} kg, Oil = {{ demand.requested_oil }} kg</p>
             <p><b>Status:</b> {{ demand.status }}</p>
 

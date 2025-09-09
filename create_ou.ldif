@@ -1,0 +1,3 @@
+dn: ou=People,dc=navy,dc=local
+objectClass: organizationalUnit
+ou: People

@@ -1,0 +1,54 @@
+dn: uid=1001,ou=People,dc=navy,dc=local
+objectClass: inetOrgPerson
+cn: Rajesh Singh
+sn: Singh
+uid: 1001
+userPassword: navy@123
+employeeNumber: 12345
+mobile: 9876543210
+postalAddress: Navy Nagar, Mumbai
+description: Rank=5, RationType=S, Delivery=Home
+
+dn: uid=1002,ou=People,dc=navy,dc=local
+objectClass: inetOrgPerson
+cn: Ajay Kumar
+sn: Kumar
+uid: 1002
+userPassword: navy@321
+employeeNumber: 54321
+mobile: 9123456789
+postalAddress: Colaba, Mumbai
+description: Rank=3, RationType=PV, Delivery=Counter
+
+dn: uid=1003,ou=People,dc=navy,dc=local
+objectClass: inetOrgPerson
+cn: Sunil Mehta
+sn: Mehta
+uid: 1003
+userPassword: sunil@123
+employeeNumber: 67890
+mobile: 9988776655
+postalAddress: CST Road, Mumbai
+description: Rank=2, RationType=EV, Delivery=Home
+
+dn: uid=1004,ou=People,dc=navy,dc=local
+objectClass: inetOrgPerson
+cn: Ramesh Nair
+sn: Nair
+uid: 1004
+userPassword: ramesh@123
+employeeNumber: 11111
+mobile: 9876501234
+postalAddress: Malad, Mumbai
+description: Rank=4, RationType=S, Delivery=Counter
+
+dn: uid=1005,ou=People,dc=navy,dc=local
+objectClass: inetOrgPerson
+cn: Anil Gupta
+sn: Gupta
+uid: 1005
+userPassword: anil@123
+employeeNumber: 22222
+mobile: 9765432109
+postalAddress: Andheri, Mumbai
+description: Rank=6, RationType=PV, Delivery=Home

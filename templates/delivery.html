@@ -8,8 +8,7 @@
     <table border="1" cellpadding="5">
         <tr>
             <th>ID</th>
-            <th>Employee</th>
-            <th>Address</th>
+            <th>Employee Code</th>
             <th>Sugar (kg)</th>
             <th>Oil (kg)</th>
             <th>Mark Delivered</th>
@@ -17,8 +16,7 @@
         {% for demand in demands %}
         <tr>
             <td>{{ demand.id }}</td>
-            <td>{{ demand.employee.name }}</td>
-            <td>{{ demand.employee.address }}</td>
+            <td>{{ demand.employee_code }}</td>
             <td>{{ demand.approved_sugar }}</td>
             <td>{{ demand.approved_oil }}</td>
             <td>

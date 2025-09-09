@@ -11,13 +11,26 @@
     {% endif %}
 
     <form method="POST">
-        <label>Username:</label>
-        <input type="text" name="username"><br><br>
-        
-        <label>Password:</label>
-        <input type="password" name="password"><br><br>
-        
-        <button type="submit">Login</button>
+        {% if form %}
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.employee_code.label }}<br>
+                {{ form.employee_code(size=30) }}
+            </p>
+            <p>
+                {{ form.password.label }}<br>
+                {{ form.password(size=30) }}
+            </p>
+            <p>{{ form.submit() }}</p>
+        {% else %}
+            <label>Username:</label>
+            <input type="text" name="username"><br><br>
+
+            <label>Password:</label>
+            <input type="password" name="password"><br><br>
+
+            <button type="submit">Login</button>
+        {% endif %}
     </form>
 
     <p><a href="{{ url_for('home') }}">🏠 Back</a></p>
