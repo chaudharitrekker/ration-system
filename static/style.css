@@ -1,0 +1,11 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+h2 {
+    letter-spacing: 1px;
+}
+.py-4 {
+  padding-top: 15rem !important;
+  padding-bottom: 15rem !important;
+} 
+

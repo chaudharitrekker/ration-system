@@ -1,0 +1,106 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Master List - Approved Ration Requests </title>
+</head>
+<body>
+    <h1>📋 Master List - Approved Ration Requests </h1>
+
+    {% if demands %}
+    <table border="1" cellpadding="8">
+        <thead>
+            <tr>
+                <th>P.No</th>
+                <th>Name</th>
+                <th>Rank</th>
+                <th>Unit</th>
+                <th>Ration Type</th>
+                <th>Availability Days</th>
+                <th>GX File</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in demands %}
+            <tr>
+                <td>{{ d.employee_number }}</td>
+                <td>{{ d.name }}</td>
+                <td>{{ d.rank }}</td>
+                <td>{{ d.unit }}</td>
+                <td>{{ d.ration_type }}</td>
+                <td>{{ d.availability_days or "N/A" }}</td>
+                <td>
+                    {% if d.rik_gx_file %}
+                        <a href="{{ url_for('static', filename='uploads/' ~ d.rik_gx_file) }}" target="_blank">View GX</a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+                        <button type="submit" style="background:red; color:white;">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No approved demands found.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('raiser_dashboard') }}">⬅ Back to Dashboard</a></p>
+</body>
+</html> -->
+
+
+{% extends "base.html" %}
+{% block title %}Master List{% endblock %}
+{% block content %}
+<h1 class="mb-4">📋 Master List - Approved Ration Requests</h1>
+
+{% if demands %}
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>P.No</th>
+            <th>Name</th>
+            <th>Rank</th>
+            <th>Unit</th>
+            <th>Ration Type</th>
+            <th>Availability Days</th>
+            <th>GX File</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in demands %}
+        <tr>
+            <td>{{ d.employee_number }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td>
+            <td>{{ d.unit }}</td>
+            <td>{{ d.ration_type }}</td>
+            <td>{{ d.availability_days or "N/A" }}</td>
+            <td>
+                {% if d.rik_gx_file %}
+                    <a href="{{ url_for('static', filename='uploads/' ~ d.rik_gx_file) }}" target="_blank" class="btn btn-sm btn-info">View GX</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p class="text-muted">No approved demands found.</p>
+{% endif %}
+
+<a href="{{ url_for('raiser_dashboard') }}" class="btn btn-secondary mt-3">⬅ Back to Dashboard</a>
+{% endblock %}

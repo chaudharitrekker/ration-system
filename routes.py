@@ -1,9 +1,23 @@
-from flask import render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash, session, send_file
+from werkzeug.utils import secure_filename
 from app import app, db
-from models import Demand
-from forms import LoginForm, DemandForm
-from ldap3 import Server, Connection, ALL
+from models import Demand, User, OfficerDemand
+from forms import LoginForm, DemandForm, OfficerDemandForm
+from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
+from forms import LoginForm
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+import io
+import os
+from datetime import datetime
+import re
 
+
+app.secret_key = "super_secret_key"
+
+UPLOAD_FOLDER = os.path.join("static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 LDAP_SERVER = "ldap://localhost:389"
@@ -11,135 +25,321 @@ LDAP_USER_DN = "cn=admin,dc=navy,dc=local"
 LDAP_PASSWORD = "admin123"
 BASE_DN = "dc=navy,dc=local"
 
+app.config["LDAP_SERVER"] = "ldap://localhost:389"
+app.config["LDAP_USER_DN"] = "cn=admin,dc=navy,dc=local"
+app.config["LDAP_PASSWORD"] = "admin123"
+app.config["BASE_DN"] = "dc=navy,dc=local"
 app.secret_key = "super_secret_key"
 
-@app.route("/")
-def home():
-    return render_template("home.html")
+def ldap_authenticate(employee_number, password):
+    """Authenticate officer via LDAP using employeeNumber"""
+    try:
+        server = Server(app.config["LDAP_SERVER"], get_info=ALL)
+        conn = Connection(
+            server,
+            user=app.config["LDAP_USER_DN"],
+            password=app.config["LDAP_PASSWORD"],
+            auto_bind=True,
+        )
+
+        # Search officer by employeeNumber
+        search_filter = f"(employeeNumber={employee_number})"
+        conn.search(app.config["BASE_DN"], search_filter, attributes=ALL_ATTRIBUTES)
+
+        if not conn.entries:
+            return False
+
+        user_entry = conn.entries[0]
+        user_dn = user_entry.entry_dn
+
+        # Rebind as the officer with given password
+        user_conn = Connection(server, user=user_dn, password=password)
+        if not user_conn.bind():
+            return False
+
+        # ✅ Extract officer attributes safely
+        officer_data = {
+            "employeeNumber": str(user_entry.employeeNumber) if hasattr(user_entry, "employeeNumber") else None,
+            "name": str(user_entry.cn) if hasattr(user_entry, "cn") else None,
+            "rank": str(user_entry.title) if hasattr(user_entry, "title") else None,
+            "description": str(user_entry.description) if hasattr(user_entry, "description") else "",
+        }
+        return officer_data
+    except Exception as e:
+        print("LDAP Auth failed:", e)
+        return False
+
 
 @app.route("/login", methods=["GET", "POST"])
-def user_login():
+def login():
     form = LoginForm()
-    error = None
     if form.validate_on_submit():
-        employee_code = form.employee_code.data
-        password = form.password.data
+        username = form.username.data.strip()
+        password = form.password.data.strip()
 
-        try:
-            # Step 1: Connect as admin to search DN
-            server = Server(LDAP_SERVER, get_info=ALL)
-            conn = Connection(server, user=LDAP_USER_DN, password=LDAP_PASSWORD, auto_bind=True)
+        # 1️⃣ Check DB for raiser/issuer first
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            session["user_id"] = user.id
+            session["role"] = user.role
+            flash(f"✅ Logged in as {session['role']}", "success")
 
-            # Step 2: Search user by employeeNumber
-            conn.search(BASE_DN, f"(employeeNumber={employee_code})", attributes=["uid"])
-            if not conn.entries:
-                error = "❌ Employee not found."
-            else:
-                user_dn = conn.entries[0].entry_dn
+            if user.role == "raiser":
+                return redirect(url_for("raiser_dashboard"))
+            elif user.role == "issuer":
+                return redirect(url_for("issuer_dashboard"))
 
-                # Step 3: Try binding with user DN + entered password
-                user_conn = Connection(server, user=user_dn, password=password)
-                if user_conn.bind():
-                    session["employee_code"] = employee_code
-                    flash("✅ Login successful!", "success")
-                    return redirect(url_for("demand"))
-                else:
-                    error = "❌ Invalid credentials."
-        except Exception as e:
-            error = f"LDAP error: {str(e)}"
+        # 2️⃣ Check LDAP for officer login
+        ldap_entry = ldap_authenticate(username, password)
+        if ldap_entry:
+            session["employee_number"] = ldap_entry.get("employeeNumber")
+            session["name"] = ldap_entry.get("name", "Unknown Officer")
+            session["rank"] = ldap_entry.get("rank", "Unknown Rank")
+            session["role"] = "officer"
 
-    return render_template("login.html", role="User", form=form, error=error)
-   
-@app.route("/demand", methods=["GET", "POST"])
-def demand():
-    if not session.get("employee_code"):
-        flash("⚠️ Please login first!", "warning")
-        return redirect(url_for("user_login"))
+            # ✅ Optional: parse rank from description if available
+            desc = ldap_entry.get("description", "")
+            if desc and not session["rank"]:
+                rank_match = re.search(r"Rank=(\w+)", desc)
+                if rank_match:
+                    session["rank"] = rank_match.group(1)
 
-    form = DemandForm()
+            flash("✅ Logged in as Officer", "success")
+            return redirect(url_for("officer_dashboard"))
+
+        # ❌ Invalid credentials
+        flash("❌ Invalid username or password", "danger")
+
+    return render_template("home.html", form=form)
+@app.route("/officer")
+def officer_dashboard():
+    if session.get("role") != "officer":
+        return redirect(url_for("login"))
+    return render_template("officer_dashboard.html")
+
+	
+
+@app.route("/officer/new", methods=["GET", "POST"])
+def officer_new_demand():
+    if session.get("role") != "officer":
+        return redirect(url_for("login"))
+
+    form = OfficerDemandForm()
+
+    # Load units dynamically
+    if not form.unit.choices:
+        with open("units.txt") as f:
+            units = [(line.strip(), line.strip()) for line in f.readlines()]
+        form.unit.choices = units
+
     if form.validate_on_submit():
-        new_demand = Demand(
-            requested_sugar=form.sugar_kg.data,
-            requested_oil=form.oil_kg.data,
-            employee_code=session["employee_code"]  # ✅ ab sahi column use ho raha hai
+        # Handle file upload
+        filename = None
+        file = form.rik_gx_file.data
+        if file:
+            filename = secure_filename(file.filename)
+            upload_folder = app.config.get("UPLOAD_FOLDER", "uploads")
+            os.makedirs(upload_folder, exist_ok=True)
+            file.save(os.path.join(upload_folder, filename))
+
+        demand = OfficerDemand(
+            employee_number=session.get("employee_number"),   # ✅ Fix
+            name=session.get("name", "Unknown Officer"),
+            rank=session.get("rank", "Unknown Rank"),
+            ration_type=form.ration_type.data,
+            address=form.address.data,
+            unit=form.unit.data,
+            office_phone=form.office_phone.data,
+            mobile=form.mobile.data,
+            collection_type=form.collection_type.data,
+            bank_account=form.bank_account.data,
+            ifsc=form.ifsc.data,
+            rik_gx_number=form.rik_gx_number.data,
+            rik_gx_date=form.rik_gx_date.data,
+            rik_gx_file=filename,
+            retirement_date=form.retirement_date.data,
+            promotion_gx_number=form.promotion_gx_number.data,
+            promotion_gx_date=form.promotion_gx_date.data,
+            created_by=session.get("employee_number")
         )
-        db.session.add(new_demand)
+        db.session.add(demand)
         db.session.commit()
-        return render_template("message.html", message="✅ Demand placed successfully! Wait for admin approval.")
+        flash("✅ Demand submitted successfully!", "success")
+        return redirect(url_for("officer_previous_demands"))
 
-    return render_template("demand.html", form=form)
+    elif request.method == "POST":
+        flash("❌ Please check the form errors.", "danger")
 
-@app.route("/approve_demand/<int:demand_id>", methods=["POST"])
-def approve_demand(demand_id):
-    demand = Demand.query.get_or_404(demand_id)
+    return render_template("officer_form.html", form=form)
+@app.route("/officer/previous")
+def officer_previous_demands():
+    if session.get("role") != "officer":
+        return redirect(url_for("login"))
+    demands = OfficerDemand.query.filter_by(employee_number=session["employee_number"]).all()
+    return render_template("officer_previous.html", demands=demands)    
 
-    # get approved values from form
-    approved_sugar = int(request.form.get("approved_sugar", 0))
-    approved_oil = int(request.form.get("approved_oil", 0))
+@app.route("/officer/view/<int:demand_id>")
+def officer_view_demand(demand_id):
+    if session.get("role") != "officer":
+        return redirect(url_for("login"))
 
-    demand.approved_sugar = approved_sugar
-    demand.approved_oil = approved_oil
-    demand.status = "Approved"
-    db.session.commit()
+    demand = OfficerDemand.query.get_or_404(demand_id)
+    return render_template("officer_view.html", demand=demand)
 
-    flash(f"Demand {demand_id} approved! (Sugar: {approved_sugar}kg, Oil: {approved_oil}kg)", "success")
-    return redirect(url_for("admin_demands"))
+@app.route("/officer/pdf/<int:demand_id>")
+def officer_pdf(demand_id):
+    demand = OfficerDemand.query.get_or_404(demand_id)
 
-@app.route("/mark_delivered/<int:demand_id>", methods=["POST"])
-def mark_delivered(demand_id):
-    demand = Demand.query.get_or_404(demand_id)
-    demand.status = "Delivered"
-    db.session.commit()
-    flash(f"Demand {demand_id} marked as Delivered!", "success")
-    return redirect(url_for("delivery_page"))
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    y = height - 50
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(200, y, "RIK COMMENCEMENT FORM")
+    y -= 40
+
+    p.setFont("Helvetica", 12)
+    fields = [
+        ("Name", demand.name),
+        ("Rank", demand.rank),
+        ("P. No.", demand.employee_number),
+        ("Ration Type", demand.ration_type),
+        ("Address", demand.address),
+        ("Unit", demand.unit),
+        ("Office Phone", demand.office_phone),
+        ("Mobile", demand.mobile),
+        ("Collection Type", demand.collection_type),
+        ("Bank Account", demand.bank_account),
+        ("IFSC", demand.ifsc),
+        ("RIK GX Number", demand.rik_gx_number),
+        ("RIK GX Date", str(demand.rik_gx_date)),
+        ("Retirement Date", str(demand.retirement_date) if demand.retirement_date else ""),
+        ("Promotion GX Number", demand.promotion_gx_number or ""),
+        ("Promotion GX Date", str(demand.promotion_gx_date) if demand.promotion_gx_date else "")
+    ]
+
+    for label, value in fields:
+        p.drawString(50, y, f"{label}: {value}")
+        y -= 20
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    return send_file(buffer, as_attachment=True, download_name=f"demand_{demand.id}.pdf", mimetype="application/pdf")
 
 
-@app.route("/admin")
-def admin_master():
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("admin_login"))
-    return render_template("admin_master.html")
+@app.route("/raiser")
+def raiser_dashboard():
+    if session.get("role") != "raiser":
+        return redirect(url_for("login"))
+    return render_template("raiser_dashboard.html")
 
-@app.route("/admin/demands")
-def admin_demands():
-    demands = Demand.query.all()
-    return render_template("admin.html", demands=demands)
+@app.route("/raiser/add", methods=["GET", "POST"])
+def raiser_add_officer():
+    if session.get("role") != "raiser":
+        flash("❌ Unauthorized", "danger")
+        return redirect(url_for("login"))
 
+    form = OfficerDemandForm()
+    
+    if not form.unit.choices:
+        with open("units.txt") as f:
+            units = [(line.strip(), line.strip()) for line in f.readlines()]
+        form.unit.choices = units
 
-@app.route("/delivery")
-def delivery_page():
-    if not session.get("delivery_logged_in"):
-        return redirect(url_for("delivery_login"))
-    demands = Demand.query.filter_by(status="Approved").all()        
-    return render_template("delivery.html", demands=demands)
+    if form.validate_on_submit():
+        filename = None
+        if form.rik_gx_file.data:
+            file = form.rik_gx_file.data
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
+        demand = OfficerDemand(
+            employee_number=form.employee_number.data,
+            name=form.name.data,
+            rank=form.rank.data,
+            ration_type=form.ration_type.data,
+            address=form.address.data,
+            unit=form.unit.data,
+            office_phone=form.office_phone.data,
+            mobile=form.mobile.data,
+            collection_type=form.collection_type.data,
+            bank_account=form.bank_account.data,
+            ifsc=form.ifsc.data,
+            rik_gx_number=form.rik_gx_number.data,
+            rik_gx_date=form.rik_gx_date.data,
+            rik_gx_file=filename,
+            retirement_date=form.retirement_date.data,
+            promotion_gx_number=form.promotion_gx_number.data,
+            promotion_gx_date=form.promotion_gx_date.data,
+            created_by="raiser"
+        )
+        db.session.add(demand)
+        db.session.commit()
+        flash("✅ Officer Ration Request added successfully", "success")
+        return redirect(url_for("raiser_view_demands"))
 
-@app.route("/admin_login", methods=["GET", "POST"])
-def admin_login():
-    error = None
+    return render_template("raiser_add_officer.html", form=form)
+
+@app.route("/raiser/view")
+def raiser_view_demands():
+    if session.get("role") != "raiser":
+        return redirect(url_for("login"))
+
+    demands = OfficerDemand.query.all()
+    return render_template("raiser_view.html", demands=demands)
+
+@app.route("/raiser/approve", methods=["GET", "POST"])
+def raiser_approve_demands():
+    if session.get("role") != "raiser":
+        return redirect(url_for("login"))
+
+    demands = OfficerDemand.query.filter_by(status="Pending").all()
+
     if request.method == "POST":
-        if request.form["username"] == "admin" and request.form["password"] == "admin123":
-            session["admin_logged_in"] = True
-            return redirect(url_for("admin_master"))
-        else:
-            error = "Invalid Credentials"
-    return render_template("login.html", role="Admin", error=error)
+        demand_id = request.form.get("demand_id")
+        days = request.form.get("availability_days")
+        demand = OfficerDemand.query.get(demand_id)
+        demand.availability_days = int(days)
+        demand.status = "Approved"
+        db.session.commit()
+        flash("✅ Request approved successfully", "success")
+        return redirect(url_for("raiser_approve_demands"))
+
+    return render_template("raiser_approve.html", demands=demands)
 
 
-@app.route("/delivery_login", methods=["GET", "POST"])
-def delivery_login():
-    error = None
-    if request.method == "POST":
-        if request.form["username"] == "delivery" and request.form["password"] == "delivery123":
-            session["delivery_logged_in"] = True
-            return redirect(url_for("delivery_page"))
-        else:
-            error = "Invalid Credentials"
-    return render_template("login.html", role="Delivery", error=error)
+@app.route("/raiser/master")
+def raiser_master_list():
+    if session.get("role") != "raiser":
+        return redirect(url_for("login"))
 
+    demands = OfficerDemand.query.filter_by(status="Approved").all()
+    return render_template("raiser_master.html", demands=demands)
+
+@app.route("/raiser/delete/<int:demand_id>", methods=["POST"])
+def raiser_delete_demand(demand_id):
+    if session.get("role") != "raiser":
+        return redirect(url_for("login"))
+
+    demand = OfficerDemand.query.get_or_404(demand_id)
+    db.session.delete(demand)
+    db.session.commit()
+    flash("🗑️ Ration Request deleted", "info")
+    return redirect(url_for("raiser_master_list"))
+
+@app.route("/issuer")
+def issuer_dashboard():
+    return "Issuer Dashboard (Issue Approved Demands + Manage Stock)"   
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("home"))
+
+
+
 

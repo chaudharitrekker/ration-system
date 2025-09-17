@@ -1,0 +1,22 @@
+<!-- <h1>Raiser Dashboard</h1>
+<ul>
+    <li><a href="{{ url_for('raiser_add_officer') }}">➕ Add Officer</a></li>
+    <li><a href="{{ url_for('raiser_view_demands') }}">📄 View Ration Requestes</a></li>
+    <li><a href="{{ url_for('raiser_approve_demands') }}">✅ Approve Officer with Availability</a></li>
+    <li><a href="{{ url_for('raiser_master_list') }}">📚 Master List</a></li>
+    <li><a href="#">📦 Raise Demand (Coming Soon)</a></li>
+</ul> -->
+
+
+{% extends "base.html" %}
+{% block title %}Raiser Dashboard{% endblock %}
+{% block content %}
+<h1 class="mb-4">Raiser Dashboard</h1>
+<div class="list-group">
+    <a href="{{ url_for('raiser_add_officer') }}" class="list-group-item list-group-item-action">➕ Add Officer</a>
+    <a href="{{ url_for('raiser_view_demands') }}" class="list-group-item list-group-item-action">📄 View Ration Requests</a>
+    <a href="{{ url_for('raiser_approve_demands') }}" class="list-group-item list-group-item-action">✅ Approve Officer with Availability</a>
+    <a href="{{ url_for('raiser_master_list') }}" class="list-group-item list-group-item-action">📚 Master List</a>
+    <span class="list-group-item disabled">📦 Raise Demand (Coming Soon)</span>
+</div>
+{% endblock %}

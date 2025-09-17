@@ -1,0 +1,15 @@
+<!-- <h1>Officer Dashboard</h1>
+<ul>
+    <li><a href="{{ url_for('officer_new_demand') }}">Raise New Ration Request </a></li>
+    <li><a href="{{ url_for('officer_previous_demands') }}">View/Previous Ration Request </a></li>
+</ul> -->
+
+{% extends "base.html" %}
+{% block title %}Officer Dashboard{% endblock %}
+{% block content %}
+<h1 class="mb-4">Officer Dashboard</h1>
+<div class="list-group">
+    <a href="{{ url_for('officer_new_demand') }}" class="list-group-item list-group-item-action">✍ Raise New Ration Request</a>
+    <a href="{{ url_for('officer_previous_demands') }}" class="list-group-item list-group-item-action">📄 View/Previous Requests</a>
+</div>
+{% endblock %}

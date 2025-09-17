@@ -1,0 +1,54 @@
+<!-- <h1>All Ration Requests (Officer + Raiser)</h1>
+<table border="1">
+<tr>
+    <th>ID</th><th>Name</th><th>P.No</th><th>Ration Type</th><th>Status</th><th>Action</th>
+</tr>
+{% for d in demands %}
+<tr>
+    <td>{{ d.id }}</td>
+    <td>{{ d.name }}</td>
+    <td>{{ d.employee_number }}</td>
+    <td>{{ d.ration_type }}</td>
+    <td>{{ d.status }}</td>
+    <td>
+        <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}">View</a> | 
+        <a href="{{ url_for('officer_pdf', demand_id=d.id) }}">PDF</a>
+    </td>
+</tr>
+{% endfor %}
+</table> -->
+
+
+
+{% extends "base.html" %}
+{% block title %}All Requests{% endblock %}
+{% block content %}
+<h1 class="mb-4">All Ration Requests (Officer + Raiser)</h1>
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>P.No</th>
+            <th>Ration Type</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in demands %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.employee_number }}</td>
+            <td>{{ d.ration_type }}</td>
+            <td>{{ d.status }}</td>
+            <td>
+                <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}" class="btn btn-sm btn-info">View</a>
+                <a href="{{ url_for('officer_pdf', demand_id=d.id) }}" class="btn btn-sm btn-secondary">PDF</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

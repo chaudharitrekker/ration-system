@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Add Officer Ration Request{% endblock %}
+{% block content %}
+<h1 class="mb-4">➕ Add Officer Ration Request</h1>
+
+<form method="POST" enctype="multipart/form-data" class="row g-3">
+    {{ form.hidden_tag() }}
+
+    <div class="col-md-6">{{ form.name.label }} {{ form.name(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.rank.label }} {{ form.rank(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.employee_number.label }} {{ form.employee_number(class="form-control") }}</div>
+
+    <div class="col-md-6">{{ form.ration_type.label }} {{ form.ration_type(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.address.label }} {{ form.address(class="form-control", rows=3) }}</div>
+    <div class="col-md-6">{{ form.unit.label }} {{ form.unit(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.office_phone.label }} {{ form.office_phone(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.mobile.label }} {{ form.mobile(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.collection_type.label }} {{ form.collection_type(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.bank_account.label }} {{ form.bank_account(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.ifsc.label }} {{ form.ifsc(class="form-control") }}</div>
+
+    <div class="col-md-6">{{ form.rik_gx_number.label }} {{ form.rik_gx_number(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.rik_gx_date.label }} {{ form.rik_gx_date(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.rik_gx_file.label }} {{ form.rik_gx_file(class="form-control") }}</div>
+
+    <div class="col-md-6">{{ form.retirement_date.label }} {{ form.retirement_date(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.promotion_gx_number.label }} {{ form.promotion_gx_number(class="form-control") }}</div>
+    <div class="col-md-6">{{ form.promotion_gx_date.label }} {{ form.promotion_gx_date(class="form-control") }}</div>
+
+    <div class="col-12">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('raiser_dashboard') }}" class="btn btn-secondary">⬅ Back</a>
+    </div>
+</form>
+{% endblock %}

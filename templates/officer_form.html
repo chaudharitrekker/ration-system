@@ -1,0 +1,91 @@
+
+{% extends "base.html" %}
+{% block title %}Raise New Demand{% endblock %}
+{% block content %}
+<h1 class="mb-4">Raise New Demand</h1>
+
+<form method="POST" enctype="multipart/form-data" class="row g-3">
+    {{ form.hidden_tag() }}
+
+    <!-- Hidden fields to carry officer details from session -->
+    <input type="hidden" name="employee_number" value="{{ session['employee_number'] }}">
+    <input type="hidden" name="name" value="{{ session.get('name', 'Unknown Officer') }}">
+    <input type="hidden" name="rank" value="{{ session.get('rank', 'Unknown Rank') }}">
+
+    <!-- Each field in bootstrap grid -->
+    <div class="col-md-6">
+        {{ form.ration_type.label(class="form-label") }}
+        {{ form.ration_type(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.address.label(class="form-label") }}
+        {{ form.address(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.unit.label(class="form-label") }}
+        {{ form.unit(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.office_phone.label(class="form-label") }}
+        {{ form.office_phone(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.mobile.label(class="form-label") }}
+        {{ form.mobile(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.collection_type.label(class="form-label") }}
+        {{ form.collection_type(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.bank_account.label(class="form-label") }}
+        {{ form.bank_account(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.ifsc.label(class="form-label") }}
+        {{ form.ifsc(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.rik_gx_number.label(class="form-label") }}
+        {{ form.rik_gx_number(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.rik_gx_date.label(class="form-label") }}
+        {{ form.rik_gx_date(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.rik_gx_file.label(class="form-label") }}
+        {{ form.rik_gx_file(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.retirement_date.label(class="form-label") }}
+        {{ form.retirement_date(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.promotion_gx_number.label(class="form-label") }}
+        {{ form.promotion_gx_number(class="form-control") }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form.promotion_gx_date.label(class="form-label") }}
+        {{ form.promotion_gx_date(class="form-control") }}
+    </div>
+
+    <!-- Submit button -->
+    <div class="col-12">
+        {{ form.submit(class="btn btn-primary px-4") }}
+    </div>
+</form>
+{% endblock %}
