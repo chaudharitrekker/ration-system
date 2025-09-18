@@ -330,13 +330,6 @@ def raiser_approve_demands():
 
     return render_template("raiser_approve.html", demands=demands, pagination=pagination, search=search)
 
-# @app.route("/raiser/master")
-# def raiser_master_list():
-#     if session.get("role") != "raiser":
-#         return redirect(url_for("login"))
-
-#     demands = OfficerDemand.query.filter_by(status="Approved").all()
-#     return render_template("raiser_master.html", demands=demands)
 
 @app.route("/raiser/master", methods=["GET", "POST"])
 def raiser_master_list():
