@@ -31,6 +31,11 @@ app.config["LDAP_PASSWORD"] = "admin123"
 app.config["BASE_DN"] = "dc=navy,dc=local"
 app.secret_key = "super_secret_key"
 
+
+@app.route("/")
+def index():
+    return redirect(url_for("login"))
+    
 def ldap_authenticate(employee_number, password):
     """Authenticate officer via LDAP using employeeNumber"""
     try:
@@ -111,6 +116,7 @@ def login():
         flash("❌ Invalid username or password", "danger")
 
     return render_template("home.html", form=form)
+
 @app.route("/officer")
 def officer_dashboard():
     if session.get("role") != "officer":
@@ -126,7 +132,7 @@ def officer_new_demand():
 
     form = OfficerDemandForm()
 
-    # Load units dynamically
+    
     if not form.unit.choices:
         with open("units.txt") as f:
             units = [(line.strip(), line.strip()) for line in f.readlines()]
@@ -171,6 +177,7 @@ def officer_new_demand():
         flash("❌ Please check the form errors.", "danger")
 
     return render_template("officer_form.html", form=form)
+
 @app.route("/officer/previous")
 def officer_previous_demands():
     if session.get("role") != "officer":
@@ -280,45 +287,82 @@ def raiser_add_officer():
         db.session.add(demand)
         db.session.commit()
         flash("✅ Officer Ration Request added successfully", "success")
-        return redirect(url_for("raiser_view_demands"))
+        return redirect(url_for("raiser_dashboard"))
 
     return render_template("raiser_add_officer.html", form=form)
 
-@app.route("/raiser/view")
-def raiser_view_demands():
-    if session.get("role") != "raiser":
-        return redirect(url_for("login"))
-
-    demands = OfficerDemand.query.all()
-    return render_template("raiser_view.html", demands=demands)
-
+    
 @app.route("/raiser/approve", methods=["GET", "POST"])
 def raiser_approve_demands():
     if session.get("role") != "raiser":
         return redirect(url_for("login"))
 
-    demands = OfficerDemand.query.filter_by(status="Pending").all()
-
+    # ✅ Handle Approve action
     if request.method == "POST":
         demand_id = request.form.get("demand_id")
-        days = request.form.get("availability_days")
         demand = OfficerDemand.query.get(demand_id)
-        demand.availability_days = int(days)
-        demand.status = "Approved"
-        db.session.commit()
-        flash("✅ Request approved successfully", "success")
+        if demand:
+            demand.status = "Approved"
+            db.session.commit()
+            flash("✅ Request approved successfully", "success")
+        else:
+            flash("❌ Demand not found", "danger")
         return redirect(url_for("raiser_approve_demands"))
 
-    return render_template("raiser_approve.html", demands=demands)
+    # ✅ Search + Pagination
+    search = request.args.get("search", "").strip()
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
 
+    query = OfficerDemand.query.filter_by(status="Pending")
 
-@app.route("/raiser/master")
+    if search:
+        like_pattern = f"%{search}%"
+        query = query.filter(
+            (OfficerDemand.employee_number.ilike(like_pattern)) |
+            (OfficerDemand.name.ilike(like_pattern)) |
+            (OfficerDemand.rank.ilike(like_pattern)) |
+            (OfficerDemand.unit.ilike(like_pattern))
+        )
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    demands = pagination.items
+
+    return render_template("raiser_approve.html", demands=demands, pagination=pagination, search=search)
+
+# @app.route("/raiser/master")
+# def raiser_master_list():
+#     if session.get("role") != "raiser":
+#         return redirect(url_for("login"))
+
+#     demands = OfficerDemand.query.filter_by(status="Approved").all()
+#     return render_template("raiser_master.html", demands=demands)
+
+@app.route("/raiser/master", methods=["GET", "POST"])
 def raiser_master_list():
     if session.get("role") != "raiser":
         return redirect(url_for("login"))
 
-    demands = OfficerDemand.query.filter_by(status="Approved").all()
-    return render_template("raiser_master.html", demands=demands)
+    # 🔎 Search + Pagination
+    search = request.args.get("search", "").strip()
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
+    query = OfficerDemand.query.filter_by(status="Approved")
+
+    if search:
+        like_pattern = f"%{search}%"
+        query = query.filter(
+            (OfficerDemand.employee_number.ilike(like_pattern)) |
+            (OfficerDemand.name.ilike(like_pattern)) |
+            (OfficerDemand.rank.ilike(like_pattern)) |
+            (OfficerDemand.unit.ilike(like_pattern))
+        )
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    demands = pagination.items
+
+    return render_template("raiser_master.html", demands=demands, pagination=pagination, search=search)
 
 @app.route("/raiser/delete/<int:demand_id>", methods=["POST"])
 def raiser_delete_demand(demand_id):

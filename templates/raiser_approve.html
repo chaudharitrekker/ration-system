@@ -1,70 +1,15 @@
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Approve Officer Ration Requests</title>
-</head>
-<body>
-    <h1>✅ Approve Officer's Ration Requests</h1>
-
-    {% if demands %}
-    <table border="1" cellpadding="8">
-        <thead>
-            <tr>
-                <th>P.No</th>
-                <th>Name</th>
-                <th>Rank</th>
-                <th>Unit</th>
-                <th>Ration Type</th>
-                <th>View GX File</th>
-                <th>Availability Days</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in demands %}
-            <tr>
-                <td>{{ d.employee_number }}</td>
-                <td>{{ d.name }}</td>
-                <td>{{ d.rank }}</td>
-                <td>{{ d.unit }}</td>
-                <td>{{ d.ration_type }}</td>
-                <td>
-                    {% if d.rik_gx_file %}
-                        <a href="{{ url_for('static', filename='uploads/' ~ d.rik_gx_file) }}" target="_blank">View GX</a>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>
-                    <form method="POST" style="display:inline;">
-                        <input type="hidden" name="demand_id" value="{{ d.id }}">
-                        <input type="number" name="availability_days" min="1" required>
-                        <button type="submit">Approve</button>
-                    </form>
-                </td>
-                <td>
-                    <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
-                        <button type="submit" style="background:red; color:white;">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <p>No pending requesetes found.</p>
-    {% endif %}
-
-    <p><a href="{{ url_for('raiser_dashboard') }}">⬅ Back to Dashboard</a></p>
-</body>
-</html> -->
-
-
-
 {% extends "base.html" %}
 {% block title %}Approve Requests{% endblock %}
 {% block content %}
 <h1 class="mb-4">✅ Approve Officer's Ration Requests</h1>
+
+<!-- 🔎 Search Form -->
+<form method="GET" class="mb-3 d-flex">
+    <input type="text" name="search" class="form-control me-2"
+           placeholder="Search by P.No, Name, Rank, Unit"
+           value="{{ search }}">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 
 {% if demands %}
 <table class="table table-bordered table-striped">
@@ -76,7 +21,6 @@
             <th>Unit</th>
             <th>Ration Type</th>
             <th>View GX File</th>
-            <th>Availability Days</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -90,20 +34,19 @@
             <td>{{ d.ration_type }}</td>
             <td>
                 {% if d.rik_gx_file %}
-                    <a href="{{ url_for('static', filename='uploads/' ~ d.rik_gx_file) }}" target="_blank" class="btn btn-sm btn-info">View GX</a>
+                    <a href="{{ url_for('static', filename='uploads/' ~ d.rik_gx_file) }}"
+                       target="_blank" class="btn btn-sm btn-info">View GX</a>
                 {% else %}
                     N/A
                 {% endif %}
             </td>
             <td>
-                <form method="POST" class="d-flex">
+                <form method="POST" action="{{ url_for('raiser_approve_demands') }}" class="d-inline">
                     <input type="hidden" name="demand_id" value="{{ d.id }}">
-                    <input type="number" name="availability_days" min="1" required class="form-control me-2">
                     <button type="submit" class="btn btn-success btn-sm">Approve</button>
                 </form>
-            </td>
-            <td>
-                <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+
+                <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}" class="d-inline">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
             </td>
@@ -111,9 +54,34 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!-- 🔽 Pagination Controls -->
+<nav>
+  <ul class="pagination">
+    {% if pagination.has_prev %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('raiser_approve_demands', page=pagination.prev_num, search=search) }}">Previous</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    <li class="page-item disabled"><span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span></li>
+
+    {% if pagination.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('raiser_approve_demands', page=pagination.next_num, search=search) }}">Next</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+
 {% else %}
     <p class="text-muted">No pending requests found.</p>
 {% endif %}
 
 <a href="{{ url_for('raiser_dashboard') }}" class="btn btn-secondary mt-3">⬅ Back to Dashboard</a>
 {% endblock %}
+

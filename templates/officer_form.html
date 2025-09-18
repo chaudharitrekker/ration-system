@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% block title %}Raise New Demand{% endblock %}
 {% block content %}
@@ -7,12 +6,26 @@
 <form method="POST" enctype="multipart/form-data" class="row g-3">
     {{ form.hidden_tag() }}
 
-    <!-- Hidden fields to carry officer details from session -->
+    <!-- Officer Details (readonly fields) -->
+    <div class="col-md-4">
+        <label class="form-label">Employee Number</label>
+        <input type="text" class="form-control" value="{{ session.get('employee_number') }}" readonly>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" value="{{ session.get('name', 'Unknown Officer') }}" readonly>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Rank</label>
+        <input type="text" class="form-control" value="{{ session.get('rank', 'Unknown Rank') }}" readonly>
+    </div>
+
+    <!-- Keep hidden inputs too (so data is submitted) -->
     <input type="hidden" name="employee_number" value="{{ session['employee_number'] }}">
     <input type="hidden" name="name" value="{{ session.get('name', 'Unknown Officer') }}">
     <input type="hidden" name="rank" value="{{ session.get('rank', 'Unknown Rank') }}">
 
-    <!-- Each field in bootstrap grid -->
+    <!-- Demand Form Fields -->
     <div class="col-md-6">
         {{ form.ration_type.label(class="form-label") }}
         {{ form.ration_type(class="form-control") }}

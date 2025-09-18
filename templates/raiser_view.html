@@ -1,54 +1,55 @@
-<!-- <h1>All Ration Requests (Officer + Raiser)</h1>
-<table border="1">
-<tr>
-    <th>ID</th><th>Name</th><th>P.No</th><th>Ration Type</th><th>Status</th><th>Action</th>
-</tr>
-{% for d in demands %}
-<tr>
-    <td>{{ d.id }}</td>
-    <td>{{ d.name }}</td>
-    <td>{{ d.employee_number }}</td>
-    <td>{{ d.ration_type }}</td>
-    <td>{{ d.status }}</td>
-    <td>
-        <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}">View</a> | 
-        <a href="{{ url_for('officer_pdf', demand_id=d.id) }}">PDF</a>
-    </td>
-</tr>
-{% endfor %}
-</table> -->
-
-
-
 {% extends "base.html" %}
-{% block title %}All Requests{% endblock %}
+{% block title %}Approve Requests{% endblock %}
 {% block content %}
-<h1 class="mb-4">All Ration Requests (Officer + Raiser)</h1>
+<h1 class="mb-4">✅ Approve Officer's Ration Requests</h1>
+
+{% if demands %}
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
-            <th>ID</th>
-            <th>Name</th>
             <th>P.No</th>
+            <th>Name</th>
+            <th>Rank</th>
+            <th>Unit</th>
             <th>Ration Type</th>
-            <th>Status</th>
+            <th>View GX File</th>
             <th>Action</th>
         </tr>
     </thead>
     <tbody>
         {% for d in demands %}
         <tr>
-            <td>{{ d.id }}</td>
-            <td>{{ d.name }}</td>
             <td>{{ d.employee_number }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td>
+            <td>{{ d.unit }}</td>
             <td>{{ d.ration_type }}</td>
-            <td>{{ d.status }}</td>
             <td>
-                <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}" class="btn btn-sm btn-info">View</a>
-                <a href="{{ url_for('officer_pdf', demand_id=d.id) }}" class="btn btn-sm btn-secondary">PDF</a>
+                {% if d.rik_gx_file %}
+                    <a href="{{ url_for('static', filename='uploads/' ~ d.rik_gx_file) }}" target="_blank" class="btn btn-sm btn-info">View GX</a>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                <!-- ✅ Approve form -->
+                <form method="POST" action="{{ url_for('raiser_approve_demands') }}">
+                    <input type="hidden" name="demand_id" value="{{ d.id }}">
+                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                </form>
+
+                <!-- ❌ Delete form (already fine) -->
+                <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+    <p class="text-muted">No pending requests found.</p>
+{% endif %}
+
+<a href="{{ url_for('raiser_dashboard') }}" class="btn btn-secondary mt-3">⬅ Back to Dashboard</a>
 {% endblock %}

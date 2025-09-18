@@ -4,8 +4,17 @@ body {
 h2 {
     letter-spacing: 1px;
 }
-.py-4 {
-  padding-top: 15rem !important;
-  padding-bottom: 15rem !important;
-} 
 
+.py-4 {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
+.pagination {
+  justify-content: center;
+  margin-top: 20px;
+}
+
+form.d-flex {
+  max-width: 500px;
+}
