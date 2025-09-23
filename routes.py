@@ -13,8 +13,6 @@ from datetime import datetime
 import re
 
 
-app.secret_key = "super_secret_key"
-
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER

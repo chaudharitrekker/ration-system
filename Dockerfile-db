@@ -1,0 +1,5 @@
+FROM postgres:15
+ENV POSTGRES_USER=rationuser
+ENV POSTGRES_PASSWORD=StrongPassword123
+ENV POSTGRES_DB=rationdb
+COPY init.sql /docker-entrypoint-initdb.d/
