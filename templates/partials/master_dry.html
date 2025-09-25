@@ -1,0 +1,24 @@
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>P.No</th>
+      <th>Name</th>
+      <th>Rank</th>
+      <th>Unit</th>
+      <th>Ration Type</th>
+      <th>Total Days (1–30)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in dry_list %}
+    <tr>
+      <td>{{ d.employee_number }}</td>
+      <td>{{ d.name }}</td>
+      <td>{{ d.rank }}</td>
+      <td>{{ d.unit }}</td>
+      <td>{{ d.ration_type }}</td>
+      <td>{{ d.dry_days }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

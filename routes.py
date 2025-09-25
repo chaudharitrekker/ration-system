@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, session, send_file
 from werkzeug.utils import secure_filename
 from app import app, db
-from models import Demand, User, OfficerDemand
+from models import Demand, User, OfficerDemand, RaisedDemand
 from forms import LoginForm, DemandForm, OfficerDemandForm
 from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
 from forms import LoginForm
@@ -12,6 +12,7 @@ import os
 from datetime import datetime
 import re
 
+app.secret_key = "super_secret_key"
 
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -85,12 +86,13 @@ def login():
         if user and user.check_password(password):
             session["user_id"] = user.id
             session["role"] = user.role
+            session["username"] = user.username 
             flash(f"✅ Logged in as {session['role']}", "success")
 
             if user.role == "raiser":
                 return redirect(url_for("raiser_dashboard"))
             elif user.role == "issuer":
-                return redirect(url_for("issuer_dashboard"))
+                return redirect(url_for('issuer_demands'))
 
         # 2️⃣ Check LDAP for officer login
         ldap_entry = ldap_authenticate(username, password)
@@ -182,6 +184,7 @@ def officer_previous_demands():
         return redirect(url_for("login"))
     demands = OfficerDemand.query.filter_by(employee_number=session["employee_number"]).all()
     return render_template("officer_previous.html", demands=demands)    
+
 
 @app.route("/officer/view/<int:demand_id>")
 def officer_view_demand(demand_id):
@@ -334,7 +337,6 @@ def raiser_master_list():
     if session.get("role") != "raiser":
         return redirect(url_for("login"))
 
-    # 🔎 Search + Pagination
     search = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
     per_page = 10
@@ -353,7 +355,58 @@ def raiser_master_list():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     demands = pagination.items
 
-    return render_template("raiser_master.html", demands=demands, pagination=pagination, search=search)
+    # Dry Issue calculation
+    dry_list = []
+    for d in demands:
+        dry_days = (d.availability_first15 or 0) + (d.availability_second15 or 0)
+        dry_list.append({
+            "id": d.id,
+            "employee_number": d.employee_number,
+            "name": d.name,
+            "rank": d.rank,
+            "unit": d.unit,
+            "ration_type": d.ration_type,
+            "dry_days": dry_days
+        })
+
+    return render_template(
+        "raiser_master.html",
+        demands=demands,
+        dry_list=dry_list,
+        pagination=pagination,
+        search=search
+    ) 
+
+@app.route("/raiser/raise-demand", methods=["POST"])
+def raise_demand():
+    if session.get("role") != "raiser":
+        flash("❌ Unauthorized", "danger")
+        return redirect(url_for("login"))
+
+    raiser = session.get("username")
+    if not raiser:
+        flash("❌ Session expired, please login again", "danger")
+        return redirect(url_for("login"))
+
+    selected_ids = request.form.getlist("selected_ids")
+    demand_type = request.form.get("demand_type")
+
+    for oid in selected_ids:
+        days = request.form.get(f"days_{oid}")
+        officer = OfficerDemand.query.get(oid)
+
+        if officer:
+            rd = RaisedDemand(
+                officer_demand_id=officer.id,
+                raiser_id=raiser,
+                demand_type=demand_type,
+                availability_days=int(days) if days else 0
+            )
+            db.session.add(rd)
+
+    db.session.commit()
+    flash("✅ Demand raised successfully!", "success")
+    return redirect(url_for("raiser_master_list"))
 
 @app.route("/raiser/delete/<int:demand_id>", methods=["POST"])
 def raiser_delete_demand(demand_id):
@@ -366,9 +419,50 @@ def raiser_delete_demand(demand_id):
     flash("🗑️ Ration Request deleted", "info")
     return redirect(url_for("raiser_master_list"))
 
-@app.route("/issuer")
-def issuer_dashboard():
-    return "Issuer Dashboard (Issue Approved Demands + Manage Stock)"   
+@app.route("/issuer/demands")
+def issuer_demands():
+    if session.get("role") != "issuer":
+        return redirect(url_for("login"))
+
+    # Search + pagination
+    search = request.args.get("search", "").strip()
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
+    query = RaisedDemand.query.join(OfficerDemand)
+
+    if search:
+        like_pattern = f"%{search}%"
+        query = query.filter(
+            (OfficerDemand.employee_number.ilike(like_pattern)) |
+            (OfficerDemand.name.ilike(like_pattern)) |
+            (OfficerDemand.rank.ilike(like_pattern)) |
+            (OfficerDemand.unit.ilike(like_pattern))
+        )
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    to_be_issued = [d for d in pagination.items if d.status == "ToBeIssued"]
+    issued = [d for d in pagination.items if d.status == "Issued"]
+
+    return render_template("issuer_demands.html",
+                           to_be_issued=to_be_issued,
+                           issued=issued,
+                           pagination=pagination,
+                           search=search)
+
+
+@app.route("/issuer/issue/<int:rd_id>", methods=["POST"])
+def issuer_issue(rd_id):
+    if session.get("role") != "issuer":
+        return redirect(url_for("login"))
+
+    rd = RaisedDemand.query.get_or_404(rd_id)
+    rd.status = "Issued"
+    db.session.commit()
+    flash("✅ Demand Issued successfully", "success")
+    return redirect(url_for("issuer_demands"))
+
 
 @app.route("/logout")
 def logout():

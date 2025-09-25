@@ -12,63 +12,140 @@
 </form>
 
 {% if demands %}
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
+
+<!-- 🔘 Tabs -->
+<ul class="nav nav-tabs mb-3" id="masterTabs" role="tablist">
+  <li class="nav-item">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#first15">1st 15 Days</button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#second15">2nd 15 Days</button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#dry">Dry Issue</button>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- 1st 15 Days -->
+  <div class="tab-pane fade show active" id="first15">
+    <form method="POST" action="{{ url_for('raise_demand') }}">
+      <input type="hidden" name="demand_type" value="first15">
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>Select</th>
             <th>P.No</th>
             <th>Name</th>
             <th>Rank</th>
             <th>Unit</th>
             <th>Ration Type</th>
-            <th>Availability Days</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for d in demands %}
-        <tr>
+            <th>Availability Days (1–15)</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in demands %}
+          <tr>
+            <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
             <td>{{ d.employee_number }}</td>
             <td>{{ d.name }}</td>
             <td>{{ d.rank }}</td>
             <td>{{ d.unit }}</td>
             <td>{{ d.ration_type }}</td>
-            <td>{{ d.availability_days or "N/A" }}</td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control" min="0" max="15"></td>
             <td>
-                <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
+              <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
             </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit" class="btn btn-success">Raise Demand</button>
+    </form>
+  </div>
 
-<!-- 🔽 Pagination Controls -->
-<nav>
-  <ul class="pagination">
-    {% if pagination.has_prev %}
-      <li class="page-item">
-        <a class="page-link" href="{{ url_for('raiser_master_list', page=pagination.prev_num, search=search) }}">Previous</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">Previous</span></li>
-    {% endif %}
+  <!-- 2nd 15 Days -->
+  <div class="tab-pane fade" id="second15">
+    <form method="POST" action="{{ url_for('raise_demand') }}">
+      <input type="hidden" name="demand_type" value="second15">
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>Select</th>
+            <th>P.No</th>
+            <th>Name</th>
+            <th>Rank</th>
+            <th>Unit</th>
+            <th>Ration Type</th>
+            <th>Availability Days (16–30)</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in demands %}
+          <tr>
+            <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
+            <td>{{ d.employee_number }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td>
+            <td>{{ d.unit }}</td>
+            <td>{{ d.ration_type }}</td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control" min="0" max="15"></td>
+            <td>
+              <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit" class="btn btn-success">Raise Demand</button>
+    </form>
+  </div>
 
-    <li class="page-item disabled"><span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span></li>
-
-    {% if pagination.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="{{ url_for('raiser_master_list', page=pagination.next_num, search=search) }}">Next</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">Next</span></li>
-    {% endif %}
-  </ul>
-</nav>
-
-{% else %}
-    <p class="text-muted">No approved demands found.</p>
+  <!-- Dry Issue -->
+  <div class="tab-pane fade" id="dry">
+    <form method="POST" action="{{ url_for('raise_demand') }}">
+      <input type="hidden" name="demand_type" value="dry">
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>Select</th>
+            <th>P.No</th>
+            <th>Name</th>
+            <th>Rank</th>
+            <th>Unit</th>
+            <th>Ration Type</th>
+            <th>Total Days</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in dry_list %}
+          <tr>
+            <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
+            <td>{{ d.employee_number }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td>
+            <td>{{ d.unit }}</td>
+            <td>{{ d.ration_type }}</td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control" min="0" max="30" value="{{ d.dry_days }}"></td>
+            <td>
+              <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit" class="btn btn-success">Raise Demand</button>
+    </form>
+  </div>
+</div>
 {% endif %}
-
-<a href="{{ url_for('raiser_dashboard') }}" class="btn btn-secondary mt-3">⬅ Back to Dashboard</a>
 {% endblock %}
