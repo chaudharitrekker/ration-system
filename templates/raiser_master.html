@@ -29,7 +29,7 @@
 <div class="tab-content">
   <!-- 1st 15 Days -->
   <div class="tab-pane fade show active" id="first15">
-    <form method="POST" action="{{ url_for('raise_demand') }}">
+    <form method="POST" action="{{ url_for('raise_demand') }}" class="raise-form">
       <input type="hidden" name="demand_type" value="first15">
       <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -46,14 +46,14 @@
         </thead>
         <tbody>
           {% for d in demands %}
-          <tr>
+          <tr data-id="{{ d.id }}">
             <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
             <td>{{ d.employee_number }}</td>
             <td>{{ d.name }}</td>
             <td>{{ d.rank }}</td>
             <td>{{ d.unit }}</td>
             <td>{{ d.ration_type }}</td>
-            <td><input type="number" name="days_{{ d.id }}" class="form-control" min="0" max="15"></td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control first15" min="0" max="15"></td>
             <td>
               <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -69,7 +69,7 @@
 
   <!-- 2nd 15 Days -->
   <div class="tab-pane fade" id="second15">
-    <form method="POST" action="{{ url_for('raise_demand') }}">
+    <form method="POST" action="{{ url_for('raise_demand') }}" class="raise-form">
       <input type="hidden" name="demand_type" value="second15">
       <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -86,14 +86,14 @@
         </thead>
         <tbody>
           {% for d in demands %}
-          <tr>
+          <tr data-id="{{ d.id }}">
             <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
             <td>{{ d.employee_number }}</td>
             <td>{{ d.name }}</td>
             <td>{{ d.rank }}</td>
             <td>{{ d.unit }}</td>
             <td>{{ d.ration_type }}</td>
-            <td><input type="number" name="days_{{ d.id }}" class="form-control" min="0" max="15"></td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control second15" min="0" max="16"></td>
             <td>
               <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -109,7 +109,7 @@
 
   <!-- Dry Issue -->
   <div class="tab-pane fade" id="dry">
-    <form method="POST" action="{{ url_for('raise_demand') }}">
+    <form method="POST" action="{{ url_for('raise_demand') }}" class="raise-form">
       <input type="hidden" name="demand_type" value="dry">
       <table class="table table-bordered table-striped">
         <thead class="table-dark">
@@ -126,14 +126,14 @@
         </thead>
         <tbody>
           {% for d in dry_list %}
-          <tr>
+          <tr data-id="{{ d.id }}">
             <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
             <td>{{ d.employee_number }}</td>
             <td>{{ d.name }}</td>
             <td>{{ d.rank }}</td>
             <td>{{ d.unit }}</td>
             <td>{{ d.ration_type }}</td>
-            <td><input type="number" name="days_{{ d.id }}" class="form-control" min="0" max="30" value="{{ d.dry_days }}"></td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control dry" min="0" max="31" value="{{ d.dry_days }}"></td>
             <td>
               <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -148,4 +148,48 @@
   </div>
 </div>
 {% endif %}
+
+<!-- 🔥 JavaScript -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  function updateDryTotals() {
+    document.querySelectorAll("tr[data-id]").forEach(function(row) {
+      let id = row.getAttribute("data-id");
+      let first = document.querySelector(`#first15 input[name="days_${id}"]`);
+      let second = document.querySelector(`#second15 input[name="days_${id}"]`);
+      let dry = document.querySelector(`#dry input[name="days_${id}"]`);
+      if (dry) {
+        let total = 0;
+        if (first && first.value) total += parseInt(first.value) || 0;
+        if (second && second.value) total += parseInt(second.value) || 0;
+        dry.value = total;
+      }
+    });
+  }
+
+  // auto-update on input
+  document.querySelectorAll(".first15, .second15").forEach(inp => {
+    inp.addEventListener("input", updateDryTotals);
+  });
+
+  // Remove selected rows after submit
+  document.querySelectorAll(".raise-form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+      e.preventDefault(); // stop normal submit
+      let formData = new FormData(form);
+      fetch(form.action, {method:"POST", body:formData})
+        .then(r => r.text())
+        .then(() => {
+          form.querySelectorAll("input[name='selected_ids']:checked").forEach(cb => {
+            let row = cb.closest("tr");
+            if (row) row.remove();
+          });
+          alert("✅ Demand raised successfully!");
+        })
+        .catch(err => alert("❌ Error: " + err));
+    });
+  });
+});
+</script>
+
 {% endblock %}

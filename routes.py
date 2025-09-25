@@ -303,7 +303,7 @@ def raiser_approve_demands():
         demand_id = request.form.get("demand_id")
         demand = OfficerDemand.query.get(demand_id)
         if demand:
-            demand.status = "Approved"
+            demand.status = "Approved" 
             db.session.commit()
             flash("✅ Request approved successfully", "success")
         else:
