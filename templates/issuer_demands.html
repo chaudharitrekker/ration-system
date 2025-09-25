@@ -11,7 +11,7 @@
     <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
-<!-- Tabs -->
+<!-- Main Tabs -->
 <ul class="nav nav-tabs mb-3">
   <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#toBeIssued">To Be Issued</a></li>
   <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#issued">Issued</a></li>
@@ -20,68 +20,96 @@
 <div class="tab-content">
   <!-- To Be Issued -->
   <div class="tab-pane fade show active" id="toBeIssued">
-    <table class="table table-bordered table-striped">
-      <thead class="table-dark">
-        <tr>
-          <th>P.No</th>
-          <th>Name</th>
-          <th>Rank</th>
-          <th>Unit</th>
-          <th>Ration Type</th>
-          <th>Demand Type</th>
-          <th>Days</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for rd in to_be_issued %}
-        <tr>
-          <td>{{ rd.officer.employee_number }}</td>
-          <td>{{ rd.officer.name }}</td>
-          <td>{{ rd.officer.rank }}</td>
-          <td>{{ rd.officer.unit }}</td>
-          <td>{{ rd.officer.ration_type }}</td>
-          <td>{{ rd.demand_type }}</td>
-          <td>{{ rd.availability_days }}</td>
-          <td>
-            <form method="POST" action="{{ url_for('issuer_issue', rd_id=rd.id) }}">
-              <button type="submit" class="btn btn-success btn-sm">Issue the Demand</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <!-- Sub Tabs -->
+    <ul class="nav nav-pills mb-3">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tbi_first15">First 15</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tbi_second15">Second 15</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tbi_dry">Dry</a></li>
+    </ul>
+    <div class="tab-content">
+      {% for dtype, demands in to_be_issued.items() %}
+      <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tbi_{{ dtype }}">
+        <table class="table table-bordered table-striped">
+          <thead class="table-dark">
+            <tr>
+              <th>P.No</th>
+              <th>Name</th>
+              <th>Rank</th>
+              <th>Unit</th>
+              <th>Ration Type</th>
+              <th>Demand Type</th>
+              <th>Days</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rd in demands %}
+            <tr>
+              <td>{{ rd.officer.employee_number }}</td>
+              <td>{{ rd.officer.name }}</td>
+              <td>{{ rd.officer.rank }}</td>
+              <td>{{ rd.officer.unit }}</td>
+              <td>{{ rd.officer.ration_type }}</td>
+              <td>{{ rd.demand_type }}</td>
+              <td>{{ rd.availability_days }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('issuer_issue', rd_id=rd.id) }}">
+                  <button type="submit" class="btn btn-success btn-sm">Issue</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="text-center">No records found</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 
   <!-- Issued -->
   <div class="tab-pane fade" id="issued">
-    <table class="table table-bordered table-striped">
-      <thead class="table-dark">
-        <tr>
-          <th>P.No</th>
-          <th>Name</th>
-          <th>Rank</th>
-          <th>Unit</th>
-          <th>Ration Type</th>
-          <th>Demand Type</th>
-          <th>Days</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for rd in issued %}
-        <tr>
-          <td>{{ rd.officer.employee_number }}</td>
-          <td>{{ rd.officer.name }}</td>
-          <td>{{ rd.officer.rank }}</td>
-          <td>{{ rd.officer.unit }}</td>
-          <td>{{ rd.officer.ration_type }}</td>
-          <td>{{ rd.demand_type }}</td>
-          <td>{{ rd.availability_days }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <!-- Sub Tabs -->
+    <ul class="nav nav-pills mb-3">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#i_first15">First 15</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#i_second15">Second 15</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#i_dry">Dry</a></li>
+    </ul>
+    <div class="tab-content">
+      {% for dtype, demands in issued.items() %}
+      <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="i_{{ dtype }}">
+        <table class="table table-bordered table-striped">
+          <thead class="table-dark">
+            <tr>
+              <th>P.No</th>
+              <th>Name</th>
+              <th>Rank</th>
+              <th>Unit</th>
+              <th>Ration Type</th>
+              <th>Demand Type</th>
+              <th>Days</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rd in demands %}
+            <tr>
+              <td>{{ rd.officer.employee_number }}</td>
+              <td>{{ rd.officer.name }}</td>
+              <td>{{ rd.officer.rank }}</td>
+              <td>{{ rd.officer.unit }}</td>
+              <td>{{ rd.officer.ration_type }}</td>
+              <td>{{ rd.demand_type }}</td>
+              <td>{{ rd.availability_days }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center">No records found</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 </div>
 {% endblock %}

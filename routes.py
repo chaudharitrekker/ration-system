@@ -442,14 +442,24 @@ def issuer_demands():
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    to_be_issued = [d for d in pagination.items if d.status == "ToBeIssued"]
-    issued = [d for d in pagination.items if d.status == "Issued"]
+    # 🔹 Split by status + ration type
+    to_be_issued = {
+        "first15": [d for d in pagination.items if d.status == "ToBeIssued" and d.demand_type == "first15"],
+        "second15": [d for d in pagination.items if d.status == "ToBeIssued" and d.demand_type == "second15"],
+        "dry": [d for d in pagination.items if d.status == "ToBeIssued" and d.demand_type == "dry"],
+    }
+    issued = {
+        "first15": [d for d in pagination.items if d.status == "Issued" and d.demand_type == "first15"],
+        "second15": [d for d in pagination.items if d.status == "Issued" and d.demand_type == "second15"],
+        "dry": [d for d in pagination.items if d.status == "Issued" and d.demand_type == "dry"],
+    }
 
     return render_template("issuer_demands.html",
                            to_be_issued=to_be_issued,
                            issued=issued,
                            pagination=pagination,
                            search=search)
+
 
 
 @app.route("/issuer/issue/<int:rd_id>", methods=["POST"])
