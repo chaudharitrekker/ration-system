@@ -477,6 +477,33 @@ def issuer_issue_all(dtype):
 
     return redirect(url_for("issuer_demands"))
 
+@app.route("/issuer/issue_selected", methods=["POST"])
+def issuer_issue_selected():
+    if session.get("role") != "issuer":
+        return redirect(url_for("login"))
+
+    selected_ids = request.form.getlist("selected_ids")
+
+    if not selected_ids:
+        flash("⚠ Please select at least one demand to issue.", "warning")
+        return redirect(url_for("issuer_demands"))
+
+    demands = RaisedDemand.query.filter(
+        RaisedDemand.id.in_(selected_ids),
+        RaisedDemand.status == "ToBeIssued"
+    ).all()
+
+    for rd in demands:
+        rd.status = "Issued"
+
+    if demands:
+        db.session.commit()
+        flash(f"✅ {len(demands)} selected demand(s) issued successfully!", "success")
+    else:
+        flash("⚠ No matching demands found to issue.", "warning")
+
+    return redirect(url_for("issuer_demands"))
+
 @app.route("/logout")
 def logout():
     session.clear()

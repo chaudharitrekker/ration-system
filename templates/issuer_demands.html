@@ -35,34 +35,53 @@
             <button type="submit" class="btn btn-success btn-sm">Issue All</button>
           </form>
         </div>
-        <table class="table table-bordered table-striped">
-          <thead class="table-dark">
-            <tr>
-              <th>P.No</th>
-              <th>Name</th>
-              <th>Rank</th>
-              <th>Unit</th>
-              <th>Ration Type</th>
-              <th>Demand Type</th>
-              <th>Days</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for rd in demands %}
-            <tr>
-              <td>{{ rd.officer.employee_number }}</td>
-              <td>{{ rd.officer.name }}</td>
-              <td>{{ rd.officer.rank }}</td>
-              <td>{{ rd.officer.unit }}</td>
-              <td>{{ rd.officer.ration_type }}</td>
-              <td>{{ rd.demand_type }}</td>
-              <td>{{ rd.availability_days }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7" class="text-center">No records found</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+
+        <!-- ✅ Form for Issue Selected -->
+        <form method="POST" action="{{ url_for('issuer_issue_selected') }}">
+          <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th><input type="checkbox" id="select_all_{{ dtype }}"></th>
+                <th>P.No</th>
+                <th>Name</th>
+                <th>Rank</th>
+                <th>Unit</th>
+                <th>Ration Type</th>
+                <th>Demand Type</th>
+                <th>Days</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rd in demands %}
+              <tr>
+                <td><input type="checkbox" name="selected_ids" value="{{ rd.id }}" class="chk_{{ dtype }}"></td>
+                <td>{{ rd.officer.employee_number }}</td>
+                <td>{{ rd.officer.name }}</td>
+                <td>{{ rd.officer.rank }}</td>
+                <td>{{ rd.officer.unit }}</td>
+                <td>{{ rd.officer.ration_type }}</td>
+                <td>{{ rd.demand_type }}</td>
+                <td>{{ rd.availability_days }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8" class="text-center">No records found</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- Issue Selected Button -->
+          <button type="submit" class="btn btn-warning btn-sm mt-2">Issue Selected</button>
+        </form>
+
+        <!-- ✅ Select All Script -->
+        <script>
+          document.getElementById("select_all_{{ dtype }}").addEventListener("click", function() {
+            let checkboxes = document.querySelectorAll(".chk_{{ dtype }}");
+            for (let cb of checkboxes) {
+              cb.checked = this.checked;
+            }
+          });
+        </script>
       </div>
       {% endfor %}
     </div>
