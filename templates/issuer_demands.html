@@ -29,6 +29,12 @@
     <div class="tab-content">
       {% for dtype, demands in to_be_issued.items() %}
       <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tbi_{{ dtype }}">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0 text-capitalize">{{ dtype }}</h5>
+          <form method="POST" action="{{ url_for('issuer_issue_all', dtype=dtype) }}">
+            <button type="submit" class="btn btn-success btn-sm">Issue All</button>
+          </form>
+        </div>
         <table class="table table-bordered table-striped">
           <thead class="table-dark">
             <tr>
@@ -39,7 +45,6 @@
               <th>Ration Type</th>
               <th>Demand Type</th>
               <th>Days</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -52,14 +57,9 @@
               <td>{{ rd.officer.ration_type }}</td>
               <td>{{ rd.demand_type }}</td>
               <td>{{ rd.availability_days }}</td>
-              <td>
-                <form method="POST" action="{{ url_for('issuer_issue', rd_id=rd.id) }}">
-                  <button type="submit" class="btn btn-success btn-sm">Issue</button>
-                </form>
-              </td>
             </tr>
             {% else %}
-            <tr><td colspan="8" class="text-center">No records found</td></tr>
+            <tr><td colspan="7" class="text-center">No records found</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -79,6 +79,7 @@
     <div class="tab-content">
       {% for dtype, demands in issued.items() %}
       <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="i_{{ dtype }}">
+        <h5 class="mb-2 text-capitalize">{{ dtype }}</h5>
         <table class="table table-bordered table-striped">
           <thead class="table-dark">
             <tr>

@@ -84,7 +84,7 @@ def login():
         # 1️⃣ Check DB for raiser/issuer first
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
-            session["user_id"] = user.id
+            session["user_id"] = user.id 
             session["role"] = user.role
             session["username"] = user.username 
             flash(f"✅ Logged in as {session['role']}", "success")
@@ -424,10 +424,8 @@ def issuer_demands():
     if session.get("role") != "issuer":
         return redirect(url_for("login"))
 
-    # Search + pagination
+    # Search filter
     search = request.args.get("search", "").strip()
-    page = request.args.get("page", 1, type=int)
-    per_page = 10
 
     query = RaisedDemand.query.join(OfficerDemand)
 
@@ -440,39 +438,44 @@ def issuer_demands():
             (OfficerDemand.unit.ilike(like_pattern))
         )
 
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    # ⚡ Yaha ab sara data fetch karenge
+    all_demands = query.all()
 
-    # 🔹 Split by status + ration type
+    # Split by status + demand type
     to_be_issued = {
-        "first15": [d for d in pagination.items if d.status == "ToBeIssued" and d.demand_type == "first15"],
-        "second15": [d for d in pagination.items if d.status == "ToBeIssued" and d.demand_type == "second15"],
-        "dry": [d for d in pagination.items if d.status == "ToBeIssued" and d.demand_type == "dry"],
+        "first15": [d for d in all_demands if d.status == "ToBeIssued" and d.demand_type == "first15"],
+        "second15": [d for d in all_demands if d.status == "ToBeIssued" and d.demand_type == "second15"],
+        "dry": [d for d in all_demands if d.status == "ToBeIssued" and d.demand_type == "dry"],
     }
     issued = {
-        "first15": [d for d in pagination.items if d.status == "Issued" and d.demand_type == "first15"],
-        "second15": [d for d in pagination.items if d.status == "Issued" and d.demand_type == "second15"],
-        "dry": [d for d in pagination.items if d.status == "Issued" and d.demand_type == "dry"],
+        "first15": [d for d in all_demands if d.status == "Issued" and d.demand_type == "first15"],
+        "second15": [d for d in all_demands if d.status == "Issued" and d.demand_type == "second15"],
+        "dry": [d for d in all_demands if d.status == "Issued" and d.demand_type == "dry"],
     }
 
     return render_template("issuer_demands.html",
                            to_be_issued=to_be_issued,
                            issued=issued,
-                           pagination=pagination,
                            search=search)
 
-
-
-@app.route("/issuer/issue/<int:rd_id>", methods=["POST"])
-def issuer_issue(rd_id):
+@app.route("/issuer/issue_all/<string:dtype>", methods=["POST"])
+def issuer_issue_all(dtype):
     if session.get("role") != "issuer":
         return redirect(url_for("login"))
 
-    rd = RaisedDemand.query.get_or_404(rd_id)
-    rd.status = "Issued"
-    db.session.commit()
-    flash("✅ Demand Issued successfully", "success")
-    return redirect(url_for("issuer_demands"))
+    # Get all matching "ToBeIssued" demands for that type
+    demands = RaisedDemand.query.filter_by(status="ToBeIssued", demand_type=dtype).all()
 
+    for rd in demands:
+        rd.status = "Issued"
+
+    if demands:
+        db.session.commit()
+        flash(f"✅ All '{dtype}' demands issued successfully!", "success")
+    else:
+        flash(f"⚠ No demands found for '{dtype}'", "warning")
+
+    return redirect(url_for("issuer_demands"))
 
 @app.route("/logout")
 def logout():
