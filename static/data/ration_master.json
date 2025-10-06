@@ -1,0 +1,59 @@
+{
+  "first15": {
+    "PV": {
+      "Rice": 400,
+      "Dal": 100,
+      "Sugar": 20,
+      "Potato": 100
+    },
+    "EV": {
+      "Rice": 400,
+      "Dal": 100,
+      "Egg": 1,
+      "Sugar": 20
+    },
+    "S": {
+      "Rice": 400,
+      "Dal": 100,
+      "Meat": 150,
+      "Sugar": 20
+    }
+  },
+  "second15": {
+    "PV": {
+      "Rice": 400,
+      "Dal": 100,
+      "Sugar": 20,
+      "Potato": 100
+    },
+    "EV": {
+      "Rice": 400,
+      "Dal": 100,
+      "Egg": 1,
+      "Sugar": 20
+    },
+    "S": {
+      "Rice": 400,
+      "Dal": 100,
+      "Meat": 150,
+      "Sugar": 20
+    }
+  },
+  "dry": {
+    "PV": {
+      "Rice": 400,
+      "Wheat": 400,
+      "Sugar": 30
+    },
+    "EV": {
+      "Rice": 400,
+      "Wheat": 400,
+      "Sugar": 30
+    },
+    "S": {
+      "Rice": 400,
+      "Wheat": 400,
+      "Sugar": 30
+    }
+  }
+}

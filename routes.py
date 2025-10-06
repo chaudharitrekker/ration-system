@@ -11,6 +11,8 @@ import io
 import os
 from datetime import datetime
 import re
+import json
+from flask import jsonify
 
 app.secret_key = "super_secret_key"
 
@@ -331,7 +333,31 @@ def raiser_approve_demands():
 
     return render_template("raiser_approve.html", demands=demands, pagination=pagination, search=search)
 
+@app.route("/raiser/view-ration/<demand_type>/<ration_type>/<int:days>")
+def view_ration_items(demand_type, ration_type, days):
+    """Return ration list * quantity based on ration type and availability days"""
+    try:
+        path = os.path.join(app.root_path, "static", "data", "ration_master.json")
+        with open(path) as f:
+            data = json.load(f)
 
+        if demand_type not in data or ration_type not in data[demand_type]:
+            return jsonify({"success": False, "error": "Invalid type"}), 400
+
+        items = data[demand_type][ration_type]
+
+        calculated_list = []
+        for item, per_day in items.items():
+            calculated_list.append({
+                "item": item,
+                "per_day": per_day,
+                "total": per_day * days
+            })
+
+        return jsonify({"success": True, "data": calculated_list})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+        
 @app.route("/raiser/master", methods=["GET", "POST"])
 def raiser_master_list():
     if session.get("role") != "raiser":

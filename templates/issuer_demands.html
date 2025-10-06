@@ -5,10 +5,10 @@
 
 <!-- 🔎 Search Form -->
 <form method="GET" class="mb-3 d-flex">
-    <input type="text" name="search" class="form-control me-2"
-           placeholder="Search by P.No, Name, Rank, Unit"
-           value="{{ search }}">
-    <button type="submit" class="btn btn-primary">Search</button>
+  <input type="text" name="search" class="form-control me-2"
+         placeholder="Search by P.No, Name, Rank, Unit"
+         value="{{ search }}">
+  <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
 <!-- Main Tabs -->
@@ -18,14 +18,14 @@
 </ul>
 
 <div class="tab-content">
-  <!-- To Be Issued -->
+  <!-- ================= TO BE ISSUED ================= -->
   <div class="tab-pane fade show active" id="toBeIssued">
-    <!-- Sub Tabs -->
     <ul class="nav nav-pills mb-3">
       <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tbi_first15">First 15</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tbi_second15">Second 15</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tbi_dry">Dry</a></li>
     </ul>
+
     <div class="tab-content">
       {% for dtype, demands in to_be_issued.items() %}
       <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tbi_{{ dtype }}">
@@ -36,19 +36,13 @@
           </form>
         </div>
 
-        <!-- ✅ Form for Issue Selected -->
         <form method="POST" action="{{ url_for('issuer_issue_selected') }}">
           <table class="table table-bordered table-striped">
             <thead class="table-dark">
               <tr>
                 <th><input type="checkbox" id="select_all_{{ dtype }}"></th>
-                <th>P.No</th>
-                <th>Name</th>
-                <th>Rank</th>
-                <th>Unit</th>
-                <th>Ration Type</th>
-                <th>Demand Type</th>
-                <th>Days</th>
+                <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+                <th>Ration Type</th><th>Demand Type</th><th>Days</th><th>View Ration</th>
               </tr>
             </thead>
             <tbody>
@@ -62,24 +56,26 @@
                 <td>{{ rd.officer.ration_type }}</td>
                 <td>{{ rd.demand_type }}</td>
                 <td>{{ rd.availability_days }}</td>
+                <td>
+                  <button type="button" class="btn btn-info btn-sm view-ration-btn"
+                          data-ration="{{ rd.officer.ration_type }}"
+                          data-demand="{{ dtype }}"
+                          data-days="{{ rd.availability_days }}">
+                    View Ration
+                  </button>
+                </td>
               </tr>
               {% else %}
-              <tr><td colspan="8" class="text-center">No records found</td></tr>
+              <tr><td colspan="9" class="text-center">No records found</td></tr>
               {% endfor %}
             </tbody>
           </table>
-
-          <!-- Issue Selected Button -->
           <button type="submit" class="btn btn-warning btn-sm mt-2">Issue Selected</button>
         </form>
 
-        <!-- ✅ Select All Script -->
         <script>
           document.getElementById("select_all_{{ dtype }}").addEventListener("click", function() {
-            let checkboxes = document.querySelectorAll(".chk_{{ dtype }}");
-            for (let cb of checkboxes) {
-              cb.checked = this.checked;
-            }
+            document.querySelectorAll(".chk_{{ dtype }}").forEach(cb => cb.checked = this.checked);
           });
         </script>
       </div>
@@ -87,14 +83,14 @@
     </div>
   </div>
 
-  <!-- Issued -->
+  <!-- ================= ISSUED ================= -->
   <div class="tab-pane fade" id="issued">
-    <!-- Sub Tabs -->
     <ul class="nav nav-pills mb-3">
       <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#i_first15">First 15</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#i_second15">Second 15</a></li>
       <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#i_dry">Dry</a></li>
     </ul>
+
     <div class="tab-content">
       {% for dtype, demands in issued.items() %}
       <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="i_{{ dtype }}">
@@ -102,13 +98,8 @@
         <table class="table table-bordered table-striped">
           <thead class="table-dark">
             <tr>
-              <th>P.No</th>
-              <th>Name</th>
-              <th>Rank</th>
-              <th>Unit</th>
-              <th>Ration Type</th>
-              <th>Demand Type</th>
-              <th>Days</th>
+              <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+              <th>Ration Type</th><th>Demand Type</th><th>Days</th><th>View Ration</th>
             </tr>
           </thead>
           <tbody>
@@ -121,9 +112,17 @@
               <td>{{ rd.officer.ration_type }}</td>
               <td>{{ rd.demand_type }}</td>
               <td>{{ rd.availability_days }}</td>
+              <td>
+                <button type="button" class="btn btn-info btn-sm view-ration-btn"
+                        data-ration="{{ rd.officer.ration_type }}"
+                        data-demand="{{ dtype }}"
+                        data-days="{{ rd.availability_days }}">
+                  View Ration
+                </button>
+              </td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="text-center">No records found</td></tr>
+            <tr><td colspan="8" class="text-center">No records found</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -132,4 +131,62 @@
     </div>
   </div>
 </div>
+
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="rationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Ration Items</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered">
+          <thead><tr><th>Item</th><th>Per Day (gm)</th><th>Total (gm)</th></tr></thead>
+          <tbody id="rationListBody">
+            <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".view-ration-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const ration = btn.dataset.ration;
+      const demand = btn.dataset.demand;
+      const days = parseInt(btn.dataset.days || 0);
+
+      if (!days || days <= 0) {
+        alert("⚠ Please check days value first!");
+        return;
+      }
+
+      const res = await fetch(`/raiser/view-ration/${demand}/${ration}/${days}`);
+      const data = await res.json();
+      const body = document.getElementById("rationListBody");
+      body.innerHTML = "";
+
+      if (data.success) {
+        data.data.forEach(it => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${it.item}</td><td>${it.per_day}</td><td>${it.total}</td>`;
+          body.appendChild(tr);
+        });
+      } else {
+        body.innerHTML = `<tr><td colspan="3" class="text-danger">${data.error || "Unknown error"}</td></tr>`;
+      }
+
+      new bootstrap.Modal(document.getElementById("rationModal")).show();
+    });
+  });
+});
+</script>
 {% endblock %}

@@ -1,59 +1,49 @@
 {% extends "base.html" %}
 {% block title %}Master List{% endblock %}
 {% block content %}
-<h1 class="mb-4">📋 Master List - Approved Ration Requests</h1>
+<h1 class="mb-4">📋 Raise Demand for Master List</h1>
 
 <!-- 🔎 Search Form -->
 <form method="GET" class="mb-3 d-flex">
-    <input type="text" name="search" class="form-control me-2"
-           placeholder="Search by P.No, Name, Rank, Unit"
-           value="{{ search }}">
-    <button type="submit" class="btn btn-primary">Search</button>
+  <input type="text" name="search" class="form-control me-2"
+         placeholder="Search by P.No, Name, Rank, Unit"
+         value="{{ search }}">
+  <button type="submit" class="btn btn-primary">Search</button>
 </form>
 
 {% if demands %}
-
 <!-- 🔘 Tabs -->
 <ul class="nav nav-tabs mb-3" id="masterTabs" role="tablist">
-  <li class="nav-item">
-    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#first15">1st 15 Days</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#second15">2nd 15 Days</button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#dry">Dry Issue</button>
-  </li>
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#first15">1st 15 Days</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#second15">2nd 15 Days</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dry">Dry Issue</button></li>
 </ul>
 
 <div class="tab-content">
-  <!-- 1st 15 Days -->
+  <!-- 1️⃣ 1st 15 Days -->
   <div class="tab-pane fade show active" id="first15">
     <form method="POST" action="{{ url_for('raise_demand') }}" class="raise-form">
       <input type="hidden" name="demand_type" value="first15">
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered table-striped align-middle">
         <thead class="table-dark">
           <tr>
-            <th>Select</th>
-            <th>P.No</th>
-            <th>Name</th>
-            <th>Rank</th>
-            <th>Unit</th>
-            <th>Ration Type</th>
-            <th>Availability Days (1–15)</th>
-            <th>Delete</th>
+            <th>Select</th><th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+            <th>Ration Type</th><th>Availability Days (1–15)</th><th>View Ration</th><th>Delete</th>
           </tr>
         </thead>
         <tbody>
           {% for d in demands %}
           <tr data-id="{{ d.id }}">
             <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
-            <td>{{ d.employee_number }}</td>
-            <td>{{ d.name }}</td>
-            <td>{{ d.rank }}</td>
-            <td>{{ d.unit }}</td>
-            <td>{{ d.ration_type }}</td>
+            <td>{{ d.employee_number }}</td><td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td><td>{{ d.unit }}</td><td>{{ d.ration_type }}</td>
             <td><input type="number" name="days_{{ d.id }}" class="form-control first15" min="0" max="15"></td>
+            <td>
+              <button type="button" class="btn btn-info btn-sm view-ration-btn"
+                      data-demand="first15" data-ration="{{ d.ration_type }}" data-id="{{ d.id }}">
+                View Ration
+              </button>
+            </td>
             <td>
               <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -67,33 +57,30 @@
     </form>
   </div>
 
-  <!-- 2nd 15 Days -->
+  <!-- 2️⃣ 2nd 15 Days -->
   <div class="tab-pane fade" id="second15">
     <form method="POST" action="{{ url_for('raise_demand') }}" class="raise-form">
       <input type="hidden" name="demand_type" value="second15">
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered table-striped align-middle">
         <thead class="table-dark">
           <tr>
-            <th>Select</th>
-            <th>P.No</th>
-            <th>Name</th>
-            <th>Rank</th>
-            <th>Unit</th>
-            <th>Ration Type</th>
-            <th>Availability Days (16–30)</th>
-            <th>Delete</th>
+            <th>Select</th><th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+            <th>Ration Type</th><th>Availability Days (16–30)</th><th>View Ration</th><th>Delete</th>
           </tr>
         </thead>
         <tbody>
           {% for d in demands %}
           <tr data-id="{{ d.id }}">
             <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
-            <td>{{ d.employee_number }}</td>
-            <td>{{ d.name }}</td>
-            <td>{{ d.rank }}</td>
-            <td>{{ d.unit }}</td>
-            <td>{{ d.ration_type }}</td>
-            <td><input type="number" name="days_{{ d.id }}" class="form-control second15" min="0" max="16"></td>
+            <td>{{ d.employee_number }}</td><td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td><td>{{ d.unit }}</td><td>{{ d.ration_type }}</td>
+            <td><input type="number" name="days_{{ d.id }}" class="form-control second15" min="0" max="15"></td>
+            <td>
+              <button type="button" class="btn btn-info btn-sm view-ration-btn"
+                      data-demand="second15" data-ration="{{ d.ration_type }}" data-id="{{ d.id }}">
+                View Ration
+              </button>
+            </td>
             <td>
               <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -107,33 +94,30 @@
     </form>
   </div>
 
-  <!-- Dry Issue -->
+  <!-- 3️⃣ Dry Issue -->
   <div class="tab-pane fade" id="dry">
     <form method="POST" action="{{ url_for('raise_demand') }}" class="raise-form">
       <input type="hidden" name="demand_type" value="dry">
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered table-striped align-middle">
         <thead class="table-dark">
           <tr>
-            <th>Select</th>
-            <th>P.No</th>
-            <th>Name</th>
-            <th>Rank</th>
-            <th>Unit</th>
-            <th>Ration Type</th>
-            <th>Total Days</th>
-            <th>Delete</th>
+            <th>Select</th><th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+            <th>Ration Type</th><th>Total Days</th><th>View Ration</th><th>Delete</th>
           </tr>
         </thead>
         <tbody>
           {% for d in dry_list %}
           <tr data-id="{{ d.id }}">
             <td><input type="checkbox" name="selected_ids" value="{{ d.id }}"></td>
-            <td>{{ d.employee_number }}</td>
-            <td>{{ d.name }}</td>
-            <td>{{ d.rank }}</td>
-            <td>{{ d.unit }}</td>
-            <td>{{ d.ration_type }}</td>
+            <td>{{ d.employee_number }}</td><td>{{ d.name }}</td>
+            <td>{{ d.rank }}</td><td>{{ d.unit }}</td><td>{{ d.ration_type }}</td>
             <td><input type="number" name="days_{{ d.id }}" class="form-control dry" min="0" max="31" value="{{ d.dry_days }}"></td>
+            <td>
+              <button type="button" class="btn btn-info btn-sm view-ration-btn"
+                      data-demand="dry" data-ration="{{ d.ration_type }}" data-id="{{ d.id }}">
+                View Ration
+              </button>
+            </td>
             <td>
               <form method="POST" action="{{ url_for('raiser_delete_demand', demand_id=d.id) }}">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -149,15 +133,42 @@
 </div>
 {% endif %}
 
+<!-- 🧾 Modal -->
+<div class="modal fade" id="rationModal" tabindex="-1" aria-labelledby="rationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="rationModalLabel">Ration Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-bordered">
+          <thead class="table-dark">
+            <tr><th>Item</th><th>Per Day (gm)</th><th>Total (gm)</th></tr>
+          </thead>
+          <tbody id="rationListBody">
+            <tr><td colspan="3" class="text-center text-muted">No data loaded</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 🔥 JavaScript -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+
+  // auto update dry totals
   function updateDryTotals() {
-    document.querySelectorAll("tr[data-id]").forEach(function(row) {
-      let id = row.getAttribute("data-id");
-      let first = document.querySelector(`#first15 input[name="days_${id}"]`);
-      let second = document.querySelector(`#second15 input[name="days_${id}"]`);
-      let dry = document.querySelector(`#dry input[name="days_${id}"]`);
+    document.querySelectorAll("tr[data-id]").forEach(row => {
+      const id = row.getAttribute("data-id");
+      const first = document.querySelector(`#first15 input[name="days_${id}"]`);
+      const second = document.querySelector(`#second15 input[name="days_${id}"]`);
+      const dry = document.querySelector(`#dry input[name="days_${id}"]`);
       if (dry) {
         let total = 0;
         if (first && first.value) total += parseInt(first.value) || 0;
@@ -166,30 +177,58 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   }
+  document.querySelectorAll(".first15,.second15").forEach(i => i.addEventListener("input", updateDryTotals));
 
-  // auto-update on input
-  document.querySelectorAll(".first15, .second15").forEach(inp => {
-    inp.addEventListener("input", updateDryTotals);
-  });
-
-  // Remove selected rows after submit
+  // AJAX Raise Demand
   document.querySelectorAll(".raise-form").forEach(form => {
-    form.addEventListener("submit", function(e) {
-      e.preventDefault(); // stop normal submit
-      let formData = new FormData(form);
-      fetch(form.action, {method:"POST", body:formData})
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      fetch(form.action, {method:"POST", body:fd})
         .then(r => r.text())
         .then(() => {
-          form.querySelectorAll("input[name='selected_ids']:checked").forEach(cb => {
-            let row = cb.closest("tr");
-            if (row) row.remove();
-          });
+          form.querySelectorAll("input[name='selected_ids']:checked").forEach(cb => cb.closest("tr").remove());
           alert("✅ Demand raised successfully!");
         })
         .catch(err => alert("❌ Error: " + err));
     });
   });
+
+  // View Ration logic
+  document.querySelectorAll(".view-ration-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const demand = btn.dataset.demand;
+      const ration = btn.dataset.ration;
+      const id = btn.dataset.id;
+      const daysInput = document.querySelector(`input[name="days_${id}"]`);
+      const days = parseInt(daysInput?.value || 0);
+      if (!days || days <= 0) {
+        alert("⚠️ Please enter availability days first!");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/raiser/view-ration/${demand}/${ration}/${days}`);
+        const data = await res.json();
+        const body = document.getElementById("rationListBody");
+        body.innerHTML = "";
+
+        if (data.error) {
+          body.innerHTML = `<tr><td colspan="3" class="text-danger">${data.error}</td></tr>`;
+        } else {
+          Object.entries(data).forEach(([item, qty]) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${item}</td><td>${qty/days}</td><td>${qty}</td>`;
+            body.appendChild(tr);
+          });
+        }
+        new bootstrap.Modal(document.getElementById("rationModal")).show();
+      } catch (err) {
+        alert("Error loading ration list: " + err);
+      }
+    });
+  });
+
 });
 </script>
-
 {% endblock %}
