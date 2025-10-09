@@ -9,10 +9,11 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 import io
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import json
 from flask import jsonify
+from sqlalchemy import func, extract
 
 app.secret_key = "super_secret_key"
 
@@ -529,6 +530,58 @@ def issuer_issue_selected():
         flash("⚠ No matching demands found to issue.", "warning")
 
     return redirect(url_for("issuer_demands"))
+
+@app.route("/issuer/stats")
+def issuer_stats():
+    """Return stats for analytics dashboard"""
+    if session.get("role") != "issuer":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    period = request.args.get("period", "monthly")
+
+    now = datetime.utcnow()
+    if period == "monthly":
+        start_date = now.replace(day=1)
+    elif period == "quarterly":
+        month = ((now.month - 1) // 3) * 3 + 1
+        start_date = datetime(now.year, month, 1)
+    elif period == "halfyear":
+        month = 1 if now.month <= 6 else 7
+        start_date = datetime(now.year, month, 1)
+    else:
+        start_date = now - timedelta(days=30)
+
+    # Total counts
+    total_raised = db.session.query(func.count(RaisedDemand.id)).filter(RaisedDemand.date_created >= start_date).scalar()
+    total_issued = db.session.query(func.count(RaisedDemand.id)).filter(
+        RaisedDemand.date_created >= start_date, RaisedDemand.status == "Issued"
+    ).scalar()
+    pending = total_raised - total_issued
+
+    # Demand type breakdown
+    type_data = db.session.query(
+        RaisedDemand.demand_type,
+        func.count(RaisedDemand.id)
+    ).filter(RaisedDemand.date_created >= start_date).group_by(RaisedDemand.demand_type).all()
+
+    # Unit wise issued
+    unit_data = db.session.query(
+        OfficerDemand.unit,
+        func.count(RaisedDemand.id)
+    ).join(OfficerDemand).filter(
+        RaisedDemand.date_created >= start_date,
+        RaisedDemand.status == "Issued"
+    ).group_by(OfficerDemand.unit).all()
+
+    return jsonify({
+        "summary": {
+            "total_raised": total_raised,
+            "total_issued": total_issued,
+            "pending": pending
+        },
+        "type_data": [{"type": t, "count": c} for t, c in type_data],
+        "unit_data": [{"unit": u, "count": c} for u, c in unit_data]
+    })
 
 @app.route("/logout")
 def logout():

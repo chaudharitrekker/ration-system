@@ -158,50 +158,82 @@
   </div>
 </div>
 
-<!-- 🔥 JavaScript -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-  // auto update dry totals
+  // Auto update dry totals and lock dry field
   function updateDryTotals() {
     document.querySelectorAll("tr[data-id]").forEach(row => {
       const id = row.getAttribute("data-id");
       const first = document.querySelector(`#first15 input[name="days_${id}"]`);
       const second = document.querySelector(`#second15 input[name="days_${id}"]`);
       const dry = document.querySelector(`#dry input[name="days_${id}"]`);
+      
+      const firstVal = parseInt(first?.value || 0);
+      const secondVal = parseInt(second?.value || 0);
+      const oldDryVal = parseInt(dry?.dataset.prev || 0);
+      const total = firstVal + secondVal + oldDryVal;
+
+      // Update dry input
       if (dry) {
-        let total = 0;
-        if (first && first.value) total += parseInt(first.value) || 0;
-        if (second && second.value) total += parseInt(second.value) || 0;
         dry.value = total;
+        dry.setAttribute("readonly", true);
+        dry.classList.add("bg-light");
+
+        // Update dry view button
+        const viewBtnDry = row.querySelector("#dry .view-ration-btn") || row.querySelector(".view-ration-btn");
+        if (viewBtnDry) viewBtnDry.dataset.days = total;
+      }
+
+      // Update 1st/2nd view buttons dynamically
+      if (first) {
+        const btnFirst = row.querySelector(`#first15 .view-ration-btn`);
+        if (btnFirst) btnFirst.dataset.days = firstVal;
+      }
+      if (second) {
+        const btnSecond = row.querySelector(`#second15 .view-ration-btn`);
+        if (btnSecond) btnSecond.dataset.days = secondVal;
       }
     });
   }
-  document.querySelectorAll(".first15,.second15").forEach(i => i.addEventListener("input", updateDryTotals));
+
+  // Trigger total update on 1st and 2nd 15 days input
+  document.querySelectorAll(".first15,.second15").forEach(i => {
+    i.addEventListener("input", updateDryTotals);
+  });
+
+  // Initial dry totals calc on page load
+  updateDryTotals();
 
   // AJAX Raise Demand
   document.querySelectorAll(".raise-form").forEach(form => {
     form.addEventListener("submit", e => {
       e.preventDefault();
       const fd = new FormData(form);
+
+      // Store current dry values into data-prev before sending
+      document.querySelectorAll(`#dry input[name^="days_"]`).forEach(dryInput => {
+        dryInput.dataset.prev = parseInt(dryInput.value || 0);
+      });
+
       fetch(form.action, {method:"POST", body:fd})
         .then(r => r.text())
         .then(() => {
           form.querySelectorAll("input[name='selected_ids']:checked").forEach(cb => cb.closest("tr").remove());
           alert("✅ Demand raised successfully!");
+          updateDryTotals();
         })
         .catch(err => alert("❌ Error: " + err));
     });
   });
 
-  // View Ration logic
+  // View Ration logic (works for all tabs)
   document.querySelectorAll(".view-ration-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const demand = btn.dataset.demand;
       const ration = btn.dataset.ration;
-      const id = btn.dataset.id;
-      const daysInput = document.querySelector(`input[name="days_${id}"]`);
-      const days = parseInt(daysInput?.value || 0);
+      const days = parseInt(btn.dataset.days || 0);
+
       if (!days || days <= 0) {
         alert("⚠️ Please enter availability days first!");
         return;
@@ -213,15 +245,16 @@ document.addEventListener("DOMContentLoaded", function() {
         const body = document.getElementById("rationListBody");
         body.innerHTML = "";
 
-        if (data.error) {
-          body.innerHTML = `<tr><td colspan="3" class="text-danger">${data.error}</td></tr>`;
+        if (!data.success) {
+          body.innerHTML = `<tr><td colspan="3" class="text-danger">${data.error || "Unknown error"}</td></tr>`;
         } else {
-          Object.entries(data).forEach(([item, qty]) => {
+          data.data.forEach(row => {
             const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${item}</td><td>${qty/days}</td><td>${qty}</td>`;
+            tr.innerHTML = `<td>${row.item}</td><td>${row.per_day}</td><td>${row.total}</td>`;
             body.appendChild(tr);
           });
         }
+
         new bootstrap.Modal(document.getElementById("rationModal")).show();
       } catch (err) {
         alert("Error loading ration list: " + err);

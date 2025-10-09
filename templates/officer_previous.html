@@ -1,20 +1,3 @@
-<!-- <h1>Previous/Current submitted Ration Request</h1>
-<table border="1">
-<tr><th>ID</th><th>Ration Type</th><th>Unit</th><th>Date</th><th>Action</th></tr>
-{% for d in demands %}
-<tr>
-    <td>{{ d.id }}</td>
-    <td>{{ d.ration_type }}</td>
-    <td>{{ d.unit }}</td>
-    <td>{{ d.date_created.strftime("%Y-%m-%d") }}</td>
-    <td>
-        <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}">View</a> | 
-        <a href="{{ url_for('officer_pdf', demand_id=d.id) }}">Download PDF</a>
-    </td>
-</tr>
-{% endfor %}
-</table> -->
-
 {% extends "base.html" %}
 {% block title %}Previous Demands{% endblock %}
 {% block content %}

@@ -15,6 +15,7 @@
 <ul class="nav nav-tabs mb-3">
   <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#toBeIssued">To Be Issued</a></li>
   <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#issued">Issued</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#analytics">Analytics Dashboard</a></li>
 </ul>
 
 <div class="tab-content">
@@ -37,36 +38,35 @@
         </div>
 
         <form method="POST" action="{{ url_for('issuer_issue_selected') }}">
-          <table class="table table-bordered table-striped">
-            <thead class="table-dark">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark text-center">
               <tr>
                 <th><input type="checkbox" id="select_all_{{ dtype }}"></th>
                 <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
-                <th>Ration Type</th><th>Demand Type</th><th>Days</th><th>View Ration</th>
+                <th>Ration Type</th><th>Days</th><th>View</th>
               </tr>
             </thead>
-            <tbody>
-              {% for rd in demands %}
+            <tbody id="tbiBody_{{ dtype }}">
+              {% for rd in demands[:10] %}
               <tr>
-                <td><input type="checkbox" name="selected_ids" value="{{ rd.id }}" class="chk_{{ dtype }}"></td>
+                <td class="text-center"><input type="checkbox" name="selected_ids" value="{{ rd.id }}" class="chk_{{ dtype }}"></td>
                 <td>{{ rd.officer.employee_number }}</td>
                 <td>{{ rd.officer.name }}</td>
                 <td>{{ rd.officer.rank }}</td>
                 <td>{{ rd.officer.unit }}</td>
                 <td>{{ rd.officer.ration_type }}</td>
-                <td>{{ rd.demand_type }}</td>
-                <td>{{ rd.availability_days }}</td>
-                <td>
-                  <button type="button" class="btn btn-info btn-sm view-ration-btn"
+                <td class="text-center">{{ rd.availability_days }}</td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-info btn-sm view-items-btn"
                           data-ration="{{ rd.officer.ration_type }}"
                           data-demand="{{ dtype }}"
                           data-days="{{ rd.availability_days }}">
-                    View Ration
+                    View Items
                   </button>
                 </td>
               </tr>
               {% else %}
-              <tr><td colspan="9" class="text-center">No records found</td></tr>
+              <tr><td colspan="8" class="text-center text-muted">No records found</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -95,34 +95,33 @@
       {% for dtype, demands in issued.items() %}
       <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="i_{{ dtype }}">
         <h5 class="mb-2 text-capitalize">{{ dtype }}</h5>
-        <table class="table table-bordered table-striped">
-          <thead class="table-dark">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-dark text-center">
             <tr>
               <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
-              <th>Ration Type</th><th>Demand Type</th><th>Days</th><th>View Ration</th>
+              <th>Ration Type</th><th>Days</th><th>View Voucher</th>
             </tr>
           </thead>
-          <tbody>
-            {% for rd in demands %}
+          <tbody id="issuedBody_{{ dtype }}">
+            {% for rd in demands[:10] %}
             <tr>
               <td>{{ rd.officer.employee_number }}</td>
               <td>{{ rd.officer.name }}</td>
               <td>{{ rd.officer.rank }}</td>
               <td>{{ rd.officer.unit }}</td>
               <td>{{ rd.officer.ration_type }}</td>
-              <td>{{ rd.demand_type }}</td>
-              <td>{{ rd.availability_days }}</td>
-              <td>
-                <button type="button" class="btn btn-info btn-sm view-ration-btn"
+              <td class="text-center">{{ rd.availability_days }}</td>
+              <td class="text-center">
+                <button type="button" class="btn btn-info btn-sm view-voucher-btn"
                         data-ration="{{ rd.officer.ration_type }}"
                         data-demand="{{ dtype }}"
                         data-days="{{ rd.availability_days }}">
-                  View Ration
+                  View Voucher
                 </button>
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="8" class="text-center">No records found</td></tr>
+            <tr><td colspan="7" class="text-center text-muted">No records found</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -130,50 +129,161 @@
       {% endfor %}
     </div>
   </div>
+
+  <!-- ================= ANALYTICS DASHBOARD ================= -->
+  <div class="tab-pane fade" id="analytics">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>📊 Analytics Dashboard</h4>
+      <select id="periodSelect" class="form-select w-auto">
+        <option value="monthly" selected>Monthly</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="halfyear">Half Yearly</option>
+      </select>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row text-center mb-4">
+      <div class="col-md-4">
+        <div class="card border-primary shadow-sm">
+          <div class="card-body">
+            <h6>Total Raised</h6><h3 id="raisedCount">-</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-success shadow-sm">
+          <div class="card-body">
+            <h6>Issued</h6><h3 id="issuedCount">-</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-warning shadow-sm">
+          <div class="card-body">
+            <h6>Pending</h6><h3 id="pendingCount">-</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+      <div class="col-md-6 mb-4"><canvas id="demandTypeChart"></canvas></div>
+      <div class="col-md-6 mb-4"><canvas id="unitWiseChart"></canvas></div>
+    </div>
+  </div>
 </div>
 
 <!-- ================= MODAL ================= -->
-<div class="modal fade" id="rationModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">Ration Items</h5>
+        <h5 class="modal-title" id="voucherHeading">Voucher</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <table class="table table-bordered">
-          <thead><tr><th>Item</th><th>Per Day (gm)</th><th>Total (gm)</th></tr></thead>
-          <tbody id="rationListBody">
+        <div id="officerInfo" class="mb-3 small">
+          <table class="table table-borderless">
+            <tr>
+              <th>Name:</th><td id="officerName"></td>
+              <th>P.No:</th><td id="officerPno"></td>
+            </tr>
+            <tr>
+              <th>Rank:</th><td id="officerRank"></td>
+              <th>Unit:</th><td id="officerUnit"></td>
+            </tr>
+            <tr>
+              <th>Date:</th><td id="voucherDate"></td>
+              <th>Total Days:</th><td id="voucherDays"></td>
+            </tr>
+            <tr>
+              <th>Ration Type:</th><td id="voucherRationType"></td>
+            </tr>
+          </table>
+        </div>
+
+        <table class="table table-bordered" id="voucherTable">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Item</th>
+              <th>Per Day (gm)</th>
+              <th>Total (gm)</th>
+            </tr>
+          </thead>
+          <tbody id="voucherBody">
             <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
           </tbody>
         </table>
+
+        <div class="mt-4 d-flex justify-content-between small">
+          <div><strong>Issued by:</strong> ____________________</div>
+          <div><strong>Received by:</strong> ____________________</div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="printVoucherBtn">Print</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
+<!-- ================= SCRIPTS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".view-ration-btn").forEach(btn => {
+  // ====== To Be Issued Items ======
+  document.querySelectorAll(".view-items-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const ration = btn.dataset.ration;
       const demand = btn.dataset.demand;
       const days = parseInt(btn.dataset.days || 0);
-
-      if (!days || days <= 0) {
-        alert("⚠ Please check days value first!");
-        return;
-      }
+      if (!days) return alert("⚠ Check days value!");
 
       const res = await fetch(`/raiser/view-ration/${demand}/${ration}/${days}`);
       const data = await res.json();
-      const body = document.getElementById("rationListBody");
+      const body = document.createElement("tbody");
       body.innerHTML = "";
+      if (data.success) {
+        data.data.forEach(it => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${it.item}</td><td>${it.per_day}</td><td>${it.total}</td>`;
+          body.appendChild(tr);
+        });
+        // Show simple modal with items
+        const modalBody = btn.closest(".tab-pane").querySelector("#voucherBody") || document.getElementById("voucherBody");
+        modalBody.innerHTML = body.innerHTML;
+        new bootstrap.Modal(document.getElementById("voucherModal")).show();
+      } else {
+        alert("Error loading items");
+      }
+    });
+  });
 
+  // ====== Issued Voucher ======
+  document.querySelectorAll(".view-voucher-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const ration = btn.dataset.ration;
+      const demand = btn.dataset.demand;
+      const days = parseInt(btn.dataset.days || 0);
+      if (!days) return alert("⚠ Check days value!");
+
+      const row = btn.closest("tr");
+      const info = {
+        name: row.children[1].innerText,
+        pno: row.children[0].innerText,
+        rank: row.children[2].innerText,
+        unit: row.children[3].innerText,
+        date: new Date().toLocaleDateString(),
+        totalDays: days,
+        rationType: row.children[4].innerText
+      };
+
+      const res = await fetch(`/raiser/view-ration/${demand}/${ration}/${days}`);
+      const data = await res.json();
+      const body = document.getElementById("voucherBody");
+      body.innerHTML = "";
       if (data.success) {
         data.data.forEach(it => {
           const tr = document.createElement("tr");
@@ -181,12 +291,89 @@ document.addEventListener("DOMContentLoaded", () => {
           body.appendChild(tr);
         });
       } else {
-        body.innerHTML = `<tr><td colspan="3" class="text-danger">${data.error || "Unknown error"}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="3" class="text-danger">No items found</td></tr>`;
       }
 
-      new bootstrap.Modal(document.getElementById("rationModal")).show();
+      document.getElementById("officerName").innerText = info.name;
+      document.getElementById("officerPno").innerText = info.pno;
+      document.getElementById("officerRank").innerText = info.rank;
+      document.getElementById("officerUnit").innerText = info.unit;
+      document.getElementById("voucherDate").innerText = info.date;
+      document.getElementById("voucherDays").innerText = info.totalDays;
+      document.getElementById("voucherRationType").innerText = info.rationType;
+      document.getElementById("voucherHeading").innerText = `AAHARIKA - ${demand.toUpperCase()} Voucher`;
+
+      const modal = new bootstrap.Modal(document.getElementById("voucherModal"));
+      modal.show();
+
+      document.getElementById("printVoucherBtn").onclick = () => {
+        const w = window.open("", "_blank");
+        w.document.write(`
+          <html>
+          <head>
+            <title>Voucher - ${info.name}</title>
+            <link rel='stylesheet' href='/static/css/bootstrap.min.css'>
+            <style>
+              body{padding:20px;font-size:14px;}
+              table{width:100%;border-collapse:collapse;}
+              th,td{padding:6px;border:1px solid #ccc;text-align:left;}
+              .signature{margin-top:40px; display:flex; justify-content:space-between;}
+            </style>
+          </head>
+          <body>
+            <h4 class="text-center">AAHARIKA - ${demand.toUpperCase()} Voucher</h4>
+            <table class="table table-borderless">
+              <tr><th>Name:</th><td>${info.name}</td><th>P.No:</th><td>${info.pno}</td></tr>
+              <tr><th>Rank:</th><td>${info.rank}</td><th>Unit:</th><td>${info.unit}</td></tr>
+              <tr><th>Date:</th><td>${info.date}</td><th>Total Days:</th><td>${info.totalDays}</td></tr>
+              <tr><th>Ration Type:</th><td colspan="3">${info.rationType}</td></tr>
+            </table>
+            <table class="table table-bordered">
+              <thead><tr><th>Item</th><th>Per Day (gm)</th><th>Total (gm)</th></tr></thead>
+              <tbody>${document.getElementById("voucherBody").innerHTML}</tbody>
+            </table>
+            <div class="signature">
+              <div><strong>Issued by:</strong> ____________________</div>
+              <div><strong>Received by:</strong> ____________________</div>
+            </div>
+          </body>
+          </html>
+        `);
+        w.document.close();
+        w.print();
+      };
     });
   });
+
+  // ===== Analytics Dashboard =====
+  const raisedCount = document.getElementById("raisedCount"),
+        issuedCount = document.getElementById("issuedCount"),
+        pendingCount = document.getElementById("pendingCount"),
+        periodSelect = document.getElementById("periodSelect"),
+        demandCtx = document.getElementById("demandTypeChart"),
+        unitCtx = document.getElementById("unitWiseChart");
+  let demandChart, unitChart;
+
+  async function loadAnalytics(period="monthly"){
+    const res = await fetch(`/issuer/stats?period=${period}`);
+    const data = await res.json();
+    if(data.error) return alert(data.error);
+
+    raisedCount.textContent = data.summary.total_raised;
+    issuedCount.textContent = data.summary.total_issued;
+    pendingCount.textContent = data.summary.pending;
+
+    const labels1 = data.type_data.map(x=>x.type), vals1 = data.type_data.map(x=>x.count);
+    if(demandChart) demandChart.destroy();
+    demandChart = new Chart(demandCtx,{type:'bar',data:{labels:labels1,datasets:[{label:'Demands',data:vals1,backgroundColor:'#007bff'}]},options:{plugins:{title:{display:true,text:'Demand Type Distribution'}},responsive:true}});
+
+    const labels2 = data.unit_data.map(x=>x.unit), vals2 = data.unit_data.map(x=>x.count);
+    if(unitChart) unitChart.destroy();
+    unitChart = new Chart(unitCtx,{type:'pie',data:{labels:labels2,datasets:[{data:vals2,backgroundColor:['#28a745','#dc3545','#ffc107','#17a2b8','#6610f2']}]},options:{plugins:{title:{display:true,text:'Unit Wise Distribution'}},responsive:true}});
+  }
+
+  periodSelect.addEventListener("change",()=>loadAnalytics(periodSelect.value));
+  loadAnalytics();
 });
 </script>
 {% endblock %}

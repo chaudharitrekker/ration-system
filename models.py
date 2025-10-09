@@ -51,7 +51,7 @@ class OfficerDemand(db.Model):
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default="Pending")
 
-    # 🔥 new columns for 1st and 2nd half of month
+    # new columns for 1st and 2nd half of month
     availability_first15 = db.Column(db.Integer, nullable=True)
     availability_second15 = db.Column(db.Integer, nullable=True)
 
