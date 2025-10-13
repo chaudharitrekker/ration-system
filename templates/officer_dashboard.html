@@ -1,9 +1,42 @@
 {% extends "base.html" %}
 {% block title %}Officer Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/officers.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Officer Dashboard</h1>
-<div class="list-group">
-    <a href="{{ url_for('officer_new_demand') }}" class="list-group-item list-group-item-action">✍ Raise New Ration Request</a>
-    <a href="{{ url_for('officer_previous_demands') }}" class="list-group-item list-group-item-action">📄 View/Previous Requests</a>
+<div class="dashboard">
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <img src="{{ url_for('static', filename='images/aaharika-logo.png') }}" alt="Aaharika Logo" class="logo">
+  </header>
+
+  <!-- BACKGROUND IMAGE -->
+  <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image">
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <div class="circle-wrapper" onclick="location.href='{{ url_for('officer_new_demand') }}'">
+      <div class="circle outer">
+        <div class="circle middle">
+          <div class="circle inner">
+            <span class="circle-text">Raise Demand</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="circle-wrapper" onclick="location.href='{{ url_for('officer_previous_demands') }}'">
+      <div class="circle outer">
+        <div class="circle middle">
+          <div class="circle inner">
+            <span class="circle-text">View/Preview<br>Demand</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 {% endblock %}
