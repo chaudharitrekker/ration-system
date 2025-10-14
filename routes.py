@@ -90,7 +90,7 @@ def login():
             session["user_id"] = user.id 
             session["role"] = user.role
             session["username"] = user.username 
-            flash(f"✅ Logged in as {session['role']}", "success")
+            #flash(f"✅ Logged in as {session['role']}", "success")
 
             if user.role == "raiser":
                 return redirect(url_for("raiser_dashboard"))
@@ -112,7 +112,7 @@ def login():
                 if rank_match:
                     session["rank"] = rank_match.group(1)
 
-            flash("✅ Logged in as Officer", "success")
+            #flash("✅ Logged in as Officer", "success")
             return redirect(url_for("officer_dashboard"))
 
         # ❌ Invalid credentials
@@ -586,8 +586,6 @@ def issuer_stats():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("home"))
+    return redirect(url_for("login"))
 
-
-
-
+    

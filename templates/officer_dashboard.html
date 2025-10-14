@@ -1,20 +1,26 @@
 {% extends "base.html" %}
-{% block title %}Officer Dashboard{% endblock %}
+{% block title %}Officer Dashboard - Aharika{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/officers.css') }}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/officer_dashboard.css') }}">
 {% endblock %}
+
+{% block header %}{% endblock %}  {# Custom header from CSS layout #}
 
 {% block content %}
 <div class="dashboard">
-  <!-- NAVBAR -->
+
+  <!-- HEADER -->
   <header class="navbar">
-    <img src="{{ url_for('static', filename='images/aaharika-logo.png') }}" alt="Aaharika Logo" class="logo">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Left" class="logo" />
   </header>
 
+  <!-- SUBHEADER -->
+  <div class="subheader"></div>
+
   <!-- BACKGROUND IMAGE -->
-  <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image">
+  <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image" />
+
 
   <!-- MAIN CONTENT -->
   <main>
@@ -37,6 +43,15 @@
         </div>
       </div>
     </div>
+    <div class="logout-container">
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+    </div>
+
   </main>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Website Designed and Hosted by HQWNC / CDIT ©2025. All Rights Reserved.
+  </div>
 </div>
 {% endblock %}
