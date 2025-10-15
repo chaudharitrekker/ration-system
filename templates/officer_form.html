@@ -1,105 +1,134 @@
-{% extends "base.html" %}
-{% block title %}Raise New Demand{% endblock %}
-{% block content %}
-<h1 class="mb-4">Raise New Demand</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Official Dashboard - Raise New Demand</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/officer_form.css') }}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
 
-<form method="POST" enctype="multipart/form-data" class="row g-3">
-    {{ form.hidden_tag() }}
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-section">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" />
+    </div>
+  </header>
 
-    <!-- Officer Details (readonly fields) -->
-    <div class="col-md-4">
-        <label class="form-label">Employee Number</label>
-        <input type="text" class="form-control" value="{{ session.get('employee_number') }}" readonly>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label">Name</label>
-        <input type="text" class="form-control" value="{{ session.get('name', 'Unknown Officer') }}" readonly>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label">Rank</label>
-        <input type="text" class="form-control" value="{{ session.get('rank', 'Unknown Rank') }}" readonly>
-    </div>
+  <!-- FORM SECTION -->
+  <section class="form-section">
+    <div class="form-header">Details Required For Commencement Of RIK</div>
 
-    <!-- Keep hidden inputs too (so data is submitted) -->
-    <input type="hidden" name="employee_number" value="{{ session['employee_number'] }}">
-    <input type="hidden" name="name" value="{{ session.get('name', 'Unknown Officer') }}">
-    <input type="hidden" name="rank" value="{{ session.get('rank', 'Unknown Rank') }}">
+    <form class="rik-form" method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
 
-    <!-- Demand Form Fields -->
-    <div class="col-md-6">
-        {{ form.ration_type.label(class="form-label") }}
-        {{ form.ration_type(class="form-control") }}
-    </div>
+      <!-- Officer Details (readonly fields) -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Employee Number</label>
+          <input type="text" value="{{ session.get('employee_number') }}" readonly>
+          <input type="hidden" name="employee_number" value="{{ session.get('employee_number') }}">
+        </div>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" value="{{ session.get('name', 'Unknown Officer') }}" readonly>
+          <input type="hidden" name="name" value="{{ session.get('name', 'Unknown Officer') }}">
+        </div>
+        <div class="form-group">
+          <label>Rank</label>
+          <input type="text" value="{{ session.get('rank', 'Unknown Rank') }}" readonly>
+          <input type="hidden" name="rank" value="{{ session.get('rank', 'Unknown Rank') }}">
+        </div>
+      </div>
 
-    <div class="col-md-6">
-        {{ form.address.label(class="form-label") }}
-        {{ form.address(class="form-control") }}
-    </div>
+      <!-- Demand Form Fields (WTForms) -->
+      <div class="form-row">
+        <div class="form-group">
+          {{ form.ration_type.label(class="form-label") }}
+          {{ form.ration_type(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.address.label(class="form-label") }}
+          {{ form.address(class="form-control") }}
+        </div>
+      </div>
 
-    <div class="col-md-6">
-        {{ form.unit.label(class="form-label") }}
-        {{ form.unit(class="form-control") }}
-    </div>
+      <div class="form-row">
+        <div class="form-group">
+          {{ form.unit.label(class="form-label") }}
+          {{ form.unit(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.office_phone.label(class="form-label") }}
+          {{ form.office_phone(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.mobile.label(class="form-label") }}
+          {{ form.mobile(class="form-control") }}
+        </div>
+      </div>
 
-    <div class="col-md-6">
-        {{ form.office_phone.label(class="form-label") }}
-        {{ form.office_phone(class="form-control") }}
-    </div>
+      <div class="form-row">
+        <div class="form-group">
+          {{ form.collection_type.label(class="form-label") }}
+          {{ form.collection_type(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.bank_account.label(class="form-label") }}
+          {{ form.bank_account(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.ifsc.label(class="form-label") }}
+          {{ form.ifsc(class="form-control") }}
+        </div>
+      </div>
 
-    <div class="col-md-6">
-        {{ form.mobile.label(class="form-label") }}
-        {{ form.mobile(class="form-control") }}
-    </div>
+      <div class="form-row">
+        <div class="form-group">
+          {{ form.rik_gx_number.label(class="form-label") }}
+          {{ form.rik_gx_number(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.rik_gx_date.label(class="form-label") }}
+          {{ form.rik_gx_date(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.rik_gx_file.label(class="form-label") }}
+          {{ form.rik_gx_file(class="form-control") }}
+        </div>
+      </div>
 
-    <div class="col-md-6">
-        {{ form.collection_type.label(class="form-label") }}
-        {{ form.collection_type(class="form-control") }}
-    </div>
+      <div class="form-row">
+        <div class="form-group">
+          {{ form.retirement_date.label(class="form-label") }}
+          {{ form.retirement_date(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.promotion_gx_number.label(class="form-label") }}
+          {{ form.promotion_gx_number(class="form-control") }}
+        </div>
+        <div class="form-group">
+          {{ form.promotion_gx_date.label(class="form-label") }}
+          {{ form.promotion_gx_date(class="form-control") }}
+        </div>
+      </div>
 
-    <div class="col-md-6">
-        {{ form.bank_account.label(class="form-label") }}
-        {{ form.bank_account(class="form-control") }}
-    </div>
+      <!-- Buttons -->
+      <div class="form-submit">
+        <button type="button" class="back-btn" onclick="window.history.back();">
+          <i class="fas fa-arrow-left"></i> Back to Previous Page
+        </button>
+        {{ form.submit(class="submit-btn") }}
+      </div>
 
-    <div class="col-md-6">
-        {{ form.ifsc.label(class="form-label") }}
-        {{ form.ifsc(class="form-control") }}
-    </div>
+    </form>
+  </section>
 
-    <div class="col-md-6">
-        {{ form.rik_gx_number.label(class="form-label") }}
-        {{ form.rik_gx_number(class="form-control") }}
-    </div>
+  <!-- FOOTER -->
+  <footer class="footer">
+    Website Designed and Hosted by HQWNC / CDIT ©2025. All Rights Reserved.
+  </footer>
 
-    <div class="col-md-6">
-        {{ form.rik_gx_date.label(class="form-label") }}
-        {{ form.rik_gx_date(class="form-control") }}
-    </div>
-
-    <div class="col-md-6">
-        {{ form.rik_gx_file.label(class="form-label") }}
-        {{ form.rik_gx_file(class="form-control") }}
-    </div>
-
-    <div class="col-md-6">
-        {{ form.retirement_date.label(class="form-label") }}
-        {{ form.retirement_date(class="form-control") }}
-    </div>
-
-    <div class="col-md-6">
-        {{ form.promotion_gx_number.label(class="form-label") }}
-        {{ form.promotion_gx_number(class="form-control") }}
-    </div>
-
-    <div class="col-md-6">
-        {{ form.promotion_gx_date.label(class="form-label") }}
-        {{ form.promotion_gx_date(class="form-control") }}
-    </div>
-
-    <!-- Submit button -->
-    <div class="col-12">
-        {{ form.submit(class="btn btn-primary px-4") }}
-    </div>
-    <a href="{{ url_for('officer_dashboard') }}" class="back-btn">Back officers Dashboard </a>
-</form>
-{% endblock %}
+</body>
+</html>
