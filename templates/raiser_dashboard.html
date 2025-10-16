@@ -1,15 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Raiser Dashboard</title>
 
-{% extends "base.html" %}
-{% block title %}Raiser Dashboard{% endblock %}
-{% block content %}
-<h1 class="mb-4">Raiser Dashboard</h1>
-<div class="list-group">
-    <a href="{{ url_for('raiser_add_officer') }}" class="list-group-item list-group-item-action">➕ Add Officer</a>
-    <a href="{{ url_for('raiser_approve_demands') }}" class="list-group-item list-group-item-action">✅ Approve Officer</a>
-    <a href="{{ url_for('raiser_master_list') }}" class="list-group-item list-group-item-action">📚 Raise Demand </a>
-    <!-- <span class="list-group-item disabled">📦 Final list of approved officer (Coming Soon)</span> -->
-</div>
-<div class="logout-container">
-    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
-    </div>
-{% endblock %}
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/raiser_dashboard.css') }}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+
+<body>
+  <div class="dashboard">
+    
+    <!-- ✅ NAVBAR -->
+    <header class="navbar">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" />
+      <div class="logout-container">
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+      </div>
+    </header>
+
+    <!-- ✅ BACKGROUND -->
+    <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image" />
+
+    <!-- ✅ MAIN DASHBOARD -->
+    <main>
+      <div class="circle-wrapper" id="add-officer">
+        <div class="circle outer"></div>
+        <div class="circle middle"></div>
+        <div class="circle inner">
+          <div class="circle-text">Add Officer</div>
+        </div>
+      </div>
+
+      <div class="circle-wrapper" id="approve-officer">
+        <div class="circle outer"></div>
+        <div class="circle middle"></div>
+        <div class="circle inner">
+          <div class="circle-text">Approve Officer</div>
+        </div>
+      </div>
+
+      <div class="circle-wrapper" id="master-list">
+        <div class="circle outer"></div>
+        <div class="circle middle"></div>
+        <div class="circle inner">
+          <div class="circle-text">Master List</div>
+        </div>
+      </div>
+
+      <div class="circle-wrapper" id="raise-demand">
+        <div class="circle outer"></div>
+        <div class="circle middle"></div>
+        <div class="circle inner">
+          <div class="circle-text">Raise Demand</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ✅ FOOTER -->
+    <footer class="footer">
+      Website Designed and Hosted by HQWNC / CDIT ©2025. All Rights Reserved.
+    </footer>
+
+  </div>
+
+  <!-- ✅ SCRIPT -->
+  <script>
+    document.querySelectorAll('.circle-wrapper').forEach(circle => {
+      circle.addEventListener('mousedown', () => circle.classList.add('active'));
+      ['mouseup', 'mouseleave'].forEach(evt => {
+        circle.addEventListener(evt, () => circle.classList.remove('active'));
+      });
+    });
+
+    // Redirects
+    document.getElementById('add-officer').addEventListener('click', () => {
+      window.location.href = "{{ url_for('raiser_add_officer') }}";
+    });
+    document.getElementById('approve-officer').addEventListener('click', () => {
+      window.location.href = "{{ url_for('raiser_approve_demands') }}";
+    });
+    document.getElementById('master-list').addEventListener('click', () => {
+      window.location.href = "{{ url_for('raiser_master_list') }}";
+    });
+    document.getElementById('raise-demand').addEventListener('click', () => {
+      window.location.href = "{{ url_for('raiser_master_list') }}";
+    });
+  </script>
+</body>
+</html>
