@@ -1,27 +1,129 @@
-{% extends "base.html" %}
-{% block title %}Previous Demands{% endblock %}
-{% block content %}
-<h1 class="mb-4">Previous/Current Ration Requests</h1>
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr><th>ID</th><th>Ration Type</th><th>Unit</th><th>Date</th><th>Action</th></tr>
-    </thead>
-    <tbody>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Officer Dashboard - Previous Demands</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/officer_previous.css') }}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-section">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" />
+    </div>
+  </header>
+
+  <!-- BACKGROUND -->
+  <div class="background">
+    <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image" />
+  </div>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <h2 class="page-title">Previous / Current Ration Requests</h2>
+
+    {% if demands %}
+    <table class="ration-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Ration Type</th>
+          <th>Unit</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="demand-body">
         {% for d in demands %}
         <tr>
-            <td>{{ d.id }}</td>
-            <td>{{ d.ration_type }}</td>
-            <td>{{ d.unit }}</td>
-            <td>{{ d.date_created.strftime("%Y-%m-%d") }}</td>
-            <td>
-                <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}" class="btn btn-sm btn-info">View</a>
-                <a href="{{ url_for('officer_pdf', demand_id=d.id) }}" class="btn btn-sm btn-secondary">Download PDF</a>
-            </td>
+          <td>{{ d.id }}</td>
+          <td>{{ d.ration_type }}</td>
+          <td>{{ d.unit }}</td>
+          <td>{{ d.date_created.strftime("%Y-%m-%d") }}</td>
+          <td>
+            <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}" class="view-btn">
+              <i class="fas fa-eye"></i> View
+            </a>
+            <a href="{{ url_for('officer_pdf', demand_id=d.id) }}" class="pdf-btn">
+              <i class="fas fa-file-pdf"></i> PDF
+            </a>
+          </td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
 
-<a href="{{ url_for('logout') }}" class="logout-btn"> Back officers Dashboard </a>
+    <div class="pagination" id="pagination"></div>
+    {% else %}
+    <p class="no-data">No demands found.</p>
+    {% endif %}
 
-{% endblock %}
+    <div class="buttons">
+      <a href="{{ url_for('officer_dashboard') }}" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    Website Designed and Hosted by HQWNC / CDIT ©2025. All Rights Reserved.
+  </footer>
+
+  <!-- PAGINATION SCRIPT -->
+  <script>
+    const rowsPerPage = 5;
+    const tableBody = document.getElementById("demand-body");
+    const rows = tableBody ? [...tableBody.querySelectorAll("tr")] : [];
+    const pagination = document.getElementById("pagination");
+    let currentPage = 1;
+
+    function renderTable(page) {
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      rows.forEach((row, index) => {
+        row.style.display = (index >= start && index < end) ? "table-row" : "none";
+      });
+    }
+
+    function renderPagination() {
+      if (!pagination) return;
+      const totalPages = Math.ceil(rows.length / rowsPerPage);
+      pagination.innerHTML = "";
+
+      const prev = document.createElement("button");
+      prev.innerHTML = "&lt;";
+      prev.disabled = currentPage === 1;
+      prev.onclick = () => changePage(currentPage - 1);
+      pagination.appendChild(prev);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => changePage(i);
+        pagination.appendChild(btn);
+      }
+
+      const next = document.createElement("button");
+      next.innerHTML = "&gt;";
+      next.disabled = currentPage === totalPages;
+      next.onclick = () => changePage(currentPage + 1);
+      pagination.appendChild(next);
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      renderTable(page);
+      renderPagination();
+    }
+
+    if (rows.length > 0) {
+      renderTable(currentPage);
+      renderPagination();
+    }
+  </script>
+</body>
