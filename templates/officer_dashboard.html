@@ -3,26 +3,35 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/officer_dashboard.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
-{% block header %}{% endblock %}  {# Custom header from CSS layout #}
+{% block header %}{% endblock %}  {# Using our custom navbar instead of base header #}
 
 {% block content %}
 <div class="dashboard">
 
-  <!-- HEADER -->
+  <!-- ✅ NAVBAR -->
   <header class="navbar">
     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Left" class="logo" />
+
+    <div class="navbar-right">
+      <span class="welcome-text">
+        Welcome {{ session.get('rank', 'Officer') }} {{ session.get('name', '') }}
+      </span>
+      <a href="{{ url_for('logout') }}" title="Logout">
+        <i class="fa-solid fa-right-from-bracket icon"></i>
+      </a>
+    </div>
   </header>
 
-  <!-- SUBHEADER -->
+  <!-- ✅ SUBHEADER -->
   <div class="subheader"></div>
 
-  <!-- BACKGROUND IMAGE -->
+  <!-- ✅ BACKGROUND IMAGE -->
   <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image" />
 
-
-  <!-- MAIN CONTENT -->
+  <!-- ✅ MAIN CONTENT -->
   <main>
     <div class="circle-wrapper" onclick="location.href='{{ url_for('officer_new_demand') }}'">
       <div class="circle outer">
@@ -43,13 +52,9 @@
         </div>
       </div>
     </div>
-    <div class="logout-container">
-    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
-    </div>
-
   </main>
 
-  <!-- FOOTER -->
+  <!-- ✅ FOOTER -->
   <div class="footer">
     Website Designed and Hosted by HQWNC / CDIT ©2025. All Rights Reserved.
   </div>

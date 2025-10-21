@@ -16,8 +16,11 @@
     <!-- ✅ NAVBAR -->
     <header class="navbar">
       <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" />
-      <div class="logout-container">
-        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+      <div class="navbar-right">
+        <span class="welcome-text">Welcome {{ session.get('username', '') }}</span>
+        <a href="{{ url_for('logout') }}" title="Logout">
+          <i class="fa-solid fa-right-from-bracket icon"></i>
+        </a>
       </div>
     </header>
 

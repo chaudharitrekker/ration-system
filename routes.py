@@ -15,6 +15,7 @@ import json
 from flask import jsonify
 from sqlalchemy import func, extract
 
+
 app.secret_key = "super_secret_key"
 
 UPLOAD_FOLDER = os.path.join("static", "uploads")
@@ -186,7 +187,8 @@ def officer_previous_demands():
     if session.get("role") != "officer":
         return redirect(url_for("login"))
     demands = OfficerDemand.query.filter_by(employee_number=session["employee_number"]).all()
-    return render_template("officer_previous.html", demands=demands)    
+    from datetime import timedelta
+    return render_template("officer_previous.html", demands=demands, timedelta=timedelta)   
 
 
 @app.route("/officer/view/<int:demand_id>")
@@ -194,8 +196,9 @@ def officer_view_demand(demand_id):
     if session.get("role") != "officer":
         return redirect(url_for("login"))
 
+    from datetime import timedelta
     demand = OfficerDemand.query.get_or_404(demand_id)
-    return render_template("officer_view.html", demand=demand)
+    return render_template("officer_view.html", demand=demand, timedelta=timedelta)
 
 @app.route("/officer/pdf/<int:demand_id>")
 def officer_pdf(demand_id):

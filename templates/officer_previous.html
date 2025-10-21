@@ -33,16 +33,19 @@
           <th>Ration Type</th>
           <th>Unit</th>
           <th>Date</th>
+          <th>Raised&nbsp;For</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody id="demand-body">
         {% for d in demands %}
+        {% set next_month = (d.date_created.replace(day=1) + timedelta(days=32)).strftime("%B") %}
         <tr>
           <td>{{ d.id }}</td>
           <td>{{ d.ration_type }}</td>
           <td>{{ d.unit }}</td>
           <td>{{ d.date_created.strftime("%Y-%m-%d") }}</td>
+          <td>{{ next_month }}</td>
           <td>
             <a href="{{ url_for('officer_view_demand', demand_id=d.id) }}" class="view-btn">
               <i class="fas fa-eye"></i> View
@@ -127,3 +130,4 @@
     }
   </script>
 </body>
+</html>
