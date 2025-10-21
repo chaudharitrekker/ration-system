@@ -31,6 +31,29 @@ body {
   z-index: 10;
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.welcome-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.icon {
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.icon:hover {
+  color: #c9c9c9;
+}
+
 .logo {
   height: 60px;
 }
