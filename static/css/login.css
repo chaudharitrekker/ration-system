@@ -32,6 +32,7 @@ body {
 }
 
 .logo-left {
+  margin-left: -63px;
   width: 90px;
   height: auto;
 }
@@ -42,6 +43,7 @@ body {
 }
 
 .logo-right {
+  margin-right: -63px;
   width: 75px;
   height: auto;
 }
