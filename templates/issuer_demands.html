@@ -1,328 +1,359 @@
-{% extends "base.html" %}
-{% block title %}Issuer - Raised Demands{% endblock %}
-{% block content %}
-<h1 class="mb-4">📦 Issuer Dashboard</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Issuer - Raised Demands</title>
 
-<form method="GET" class="mb-3 d-flex">
-  <input type="text" name="search" class="form-control me-2" placeholder="Search by P.No, Name, Rank, Unit" value="{{ search }}">
-  <button type="submit" class="btn btn-primary">Search</button>
-</form>
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/issuer_demands.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
 
-<ul class="nav nav-tabs mb-3">
-  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#toBeIssued">To Be Issued</a></li>
-  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#issued">Issued</a></li>
-  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#analytics">Analytics Dashboard</a></li>
-</ul>
+<body>
+  <div class="master-page">
 
-<div class="tab-content">
-  <!-- ================= TO BE ISSUED ================= -->
-  <div class="tab-pane fade show active" id="toBeIssued">
-    <ul class="nav nav-pills mb-3">
-      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tbi_first15">First 15</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tbi_second15">Second 15</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tbi_dry">Dry</a></li>
-    </ul>
-
-    <div class="tab-content">
-      {% for dtype, demands in to_be_issued.items() %}
-      <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tbi_{{ dtype }}">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h5 class="mb-0 text-capitalize">{{ dtype }}</h5>
-          <form method="POST" action="{{ url_for('issuer_issue_all', dtype=dtype) }}">
-            <button type="submit" class="btn btn-success btn-sm">Issue All</button>
-          </form>
-        </div>
-
-        <form method="POST" action="{{ url_for('issuer_issue_selected') }}">
-          <table class="table table-bordered table-striped align-middle">
-            <thead class="table-dark text-center">
-              <tr>
-                <th><input type="checkbox" id="select_all_{{ dtype }}"></th>
-                <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
-                <th>Ration Type</th><th>Days</th><th>View Items</th>
-              </tr>
-            </thead>
-            <tbody id="tbiBody_{{ dtype }}">
-              {% for rd in demands %}
-              <tr>
-                <td class="text-center"><input type="checkbox" name="selected_ids" value="{{ rd.id }}" class="chk_{{ dtype }}"></td>
-                <td>{{ rd.officer.employee_number }}</td>
-                <td>{{ rd.officer.name }}</td>
-                <td>{{ rd.officer.rank }}</td>
-                <td>{{ rd.officer.unit }}</td>
-                <td>{{ rd.officer.ration_type }}</td>
-                <td class="text-center">{{ rd.availability_days }}</td>
-                <td class="text-center">
-                  <button type="button" class="btn btn-info btn-sm view-items-btn"
-                          data-ration="{{ rd.officer.ration_type }}"
-                          data-demand="{{ dtype }}"
-                          data-days="{{ rd.availability_days }}">
-                    View Items
-                  </button>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-
-          <!-- Pagination Controls -->
-          <nav>
-            <ul class="pagination pagination-sm justify-content-center" id="pageNav_{{ dtype }}"></ul>
-          </nav>
-
-          <button type="submit" class="btn btn-warning btn-sm mt-2">Issue Selected</button>
-        </form>
-
-        <script>
-          // checkbox select all
-          document.getElementById("select_all_{{ dtype }}").addEventListener("click", function() {
-            document.querySelectorAll(".chk_{{ dtype }}").forEach(cb => cb.checked = this.checked);
-          });
-        </script>
+    <!-- ✅ HEADER -->
+    <header class="navbar">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo"/>
+      <div class="navbar-right">
+        <span class="welcome-text">Welcome {{ session.get('username', '') }}</span>
+        <a href="{{ url_for('logout') }}" title="Logout">
+          <i class="fa-solid fa-right-from-bracket icon"></i>
+        </a>
       </div>
-      {% endfor %}
-    </div>
-  </div>
+    </header>
 
-  <!-- ================= ISSUED ================= -->
-  <div class="tab-pane fade" id="issued">
-    <ul class="nav nav-pills mb-3">
-      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#i_first15">First 15</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#i_second15">Second 15</a></li>
-      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#i_dry">Dry</a></li>
-    </ul>
+    <!-- ✅ BACKGROUND -->
+    <img src="{{ url_for('static', filename='images/Official-bg.png') }}" alt="Background" class="background-image"/>
 
-    <div class="tab-content">
-      {% for dtype, demands in issued.items() %}
-      <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="i_{{ dtype }}">
-        <h5 class="mb-2 text-capitalize">{{ dtype }}</h5>
-        <table class="table table-bordered table-striped align-middle">
-          <thead class="table-dark text-center">
-            <tr>
-              <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
-              <th>Ration Type</th><th>Days</th><th>View Voucher</th>
-            </tr>
-          </thead>
-          <tbody id="issuedBody_{{ dtype }}">
-            {% for rd in demands %}
-            <tr>
-              <td>{{ rd.officer.employee_number }}</td>
-              <td>{{ rd.officer.name }}</td>
-              <td>{{ rd.officer.rank }}</td>
-              <td>{{ rd.officer.unit }}</td>
-              <td>{{ rd.officer.ration_type }}</td>
-              <td class="text-center">{{ rd.availability_days }}</td>
-              <td class="text-center">
-                <button type="button" class="btn btn-info btn-sm view-voucher-btn"
-                        data-ration="{{ rd.officer.ration_type }}"
-                        data-demand="{{ dtype }}"
-                        data-days="{{ rd.availability_days }}">
-                  View Voucher
-                </button>
-              </td>
-            </tr>
+    <!-- ✅ MAIN CONTENT -->
+    <main class="main-container">
+      <h2 class="page-title">Issuer Dashboard</h2>
+
+      <!-- 🔎 SEARCH -->
+      <form method="GET" class="search-bar mb-4">
+        <input type="text" name="search" placeholder="Search by P.No, Name, Rank, Unit" value="{{ search }}">
+        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+      </form>
+
+      <!-- 🔘 TABS -->
+      <ul class="nav nav-tabs mb-3" id="issuerTabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#toBeIssued">To Be Issued</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#issued">Issued</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics">Analytics Dashboard</button></li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- ================= TO BE ISSUED ================= -->
+        <div class="tab-pane fade show active" id="toBeIssued">
+          <ul class="nav nav-pills mb-3">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tbi_first15">First 15</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tbi_second15">Second 15</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tbi_dry">Dry</button></li>
+          </ul>
+
+          <div class="tab-content">
+            {% for dtype, demands in to_be_issued.items() %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tbi_{{ dtype }}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0 text-capitalize">{{ dtype }}</h5>
+                <form method="POST" action="{{ url_for('issuer_issue_all', dtype=dtype) }}">
+                  <button type="submit" class="btn btn-success btn-sm">Issue All</button>
+                </form>
+              </div>
+
+              <form method="POST" action="{{ url_for('issuer_issue_selected') }}">
+                <div class="table-wrapper">
+                  <table class="table table-striped table-hover align-middle shadow-sm">
+                    <thead class="table-dark text-center">
+                      <tr>
+                        <th><input type="checkbox" id="select_all_{{ dtype }}"></th>
+                        <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+                        <th>Ration Type</th><th>Days</th><th>View Items</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbiBody_{{ dtype }}">
+                      {% for rd in demands %}
+                      <tr>
+                        <td class="text-center"><input type="checkbox" name="selected_ids" value="{{ rd.id }}" class="chk_{{ dtype }}"></td>
+                        <td>{{ rd.officer.employee_number }}</td>
+                        <td>{{ rd.officer.name }}</td>
+                        <td>{{ rd.officer.rank }}</td>
+                        <td>{{ rd.officer.unit }}</td>
+                        <td>{{ rd.officer.ration_type }}</td>
+                        <td class="text-center">{{ rd.availability_days }}</td>
+                        <td class="text-center">
+                          <button type="button" class="btn btn-info btn-sm view-items-btn"
+                                  data-ration="{{ rd.officer.ration_type }}"
+                                  data-demand="{{ dtype }}"
+                                  data-days="{{ rd.availability_days }}">
+                            View Items
+                          </button>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+
+                <nav>
+                  <ul class="pagination pagination-sm justify-content-center" id="pageNav_{{ dtype }}"></ul>
+                </nav>
+
+                <button type="submit" class="btn btn-warning btn-sm mt-2">Issue Selected</button>
+              </form>
+
+              <script>
+                document.getElementById("select_all_{{ dtype }}").addEventListener("click", function() {
+                  document.querySelectorAll(".chk_{{ dtype }}").forEach(cb => cb.checked = this.checked);
+                });
+              </script>
+            </div>
             {% endfor %}
-          </tbody>
-          <nav>
-            <ul class="pagination pagination-sm justify-content-center" id="issuedPageNav_{{ dtype }}"></ul>
-          </nav>
-        </table>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
+          </div>
+        </div>
 
-  <!-- ================= ANALYTICS DASHBOARD ================= -->
-  <div class="tab-pane fade" id="analytics">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4>📊 Analytics Dashboard</h4>
-      <select id="periodSelect" class="form-select w-auto">
-        <option value="monthly" selected>Monthly</option>
-        <option value="quarterly">Quarterly</option>
-        <option value="halfyear">Half Yearly</option>
-      </select>
-    </div>
-    <div class="row text-center mb-4">
-      <div class="col-md-4"><div class="card border-primary shadow-sm"><div class="card-body"><h6>Total Raised</h6><h3 id="raisedCount">-</h3></div></div></div>
-      <div class="col-md-4"><div class="card border-success shadow-sm"><div class="card-body"><h6>Issued</h6><h3 id="issuedCount">-</h3></div></div></div>
-      <div class="col-md-4"><div class="card border-warning shadow-sm"><div class="card-body"><h6>Pending</h6><h3 id="pendingCount">-</h3></div></div></div>
-    </div>
-    <div class="row">
-      <div class="col-md-6 mb-4"><canvas id="demandTypeChart"></canvas></div>
-      <div class="col-md-6 mb-4"><canvas id="unitWiseChart"></canvas></div>
-    </div>
-  </div>
-</div>
+        <!-- ================= ISSUED ================= -->
+        <div class="tab-pane fade" id="issued">
+          <ul class="nav nav-pills mb-3">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#i_first15">First 15</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#i_second15">Second 15</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#i_dry">Dry</button></li>
+          </ul>
 
-<!-- ================= MODAL (shared for both) ================= -->
-<div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="voucherHeading">Voucher</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <div class="tab-content">
+            {% for dtype, demands in issued.items() %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="i_{{ dtype }}">
+              <h5 class="mb-2 text-capitalize">{{ dtype }}</h5>
+              <div class="table-wrapper">
+                <table class="table table-striped table-hover align-middle shadow-sm">
+                  <thead class="table-dark text-center">
+                    <tr>
+                      <th>P.No</th><th>Name</th><th>Rank</th><th>Unit</th>
+                      <th>Ration Type</th><th>Days</th><th>View Voucher</th>
+                    </tr>
+                  </thead>
+                  <tbody id="issuedBody_{{ dtype }}">
+                    {% for rd in demands %}
+                    <tr>
+                      <td>{{ rd.officer.employee_number }}</td>
+                      <td>{{ rd.officer.name }}</td>
+                      <td>{{ rd.officer.rank }}</td>
+                      <td>{{ rd.officer.unit }}</td>
+                      <td>{{ rd.officer.ration_type }}</td>
+                      <td class="text-center">{{ rd.availability_days }}</td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-info btn-sm view-voucher-btn"
+                                data-ration="{{ rd.officer.ration_type }}"
+                                data-demand="{{ dtype }}"
+                                data-days="{{ rd.availability_days }}">
+                          View Voucher
+                        </button>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                <nav>
+                  <ul class="pagination pagination-sm justify-content-center" id="issuedPageNav_{{ dtype }}"></ul>
+                </nav>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- ================= ANALYTICS DASHBOARD ================= -->
+        <div class="tab-pane fade" id="analytics">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>📊 Analytics Dashboard</h4>
+            <select id="periodSelect" class="form-select w-auto">
+              <option value="monthly" selected>Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="halfyear">Half Yearly</option>
+            </select>
+          </div>
+          <div class="row text-center mb-4">
+            <div class="col-md-4"><div class="card border-primary shadow-sm"><div class="card-body"><h6>Total Raised</h6><h3 id="raisedCount">-</h3></div></div></div>
+            <div class="col-md-4"><div class="card border-success shadow-sm"><div class="card-body"><h6>Issued</h6><h3 id="issuedCount">-</h3></div></div></div>
+            <div class="col-md-4"><div class="card border-warning shadow-sm"><div class="card-body"><h6>Pending</h6><h3 id="pendingCount">-</h3></div></div></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-4"><canvas id="demandTypeChart"></canvas></div>
+            <div class="col-md-6 mb-4"><canvas id="unitWiseChart"></canvas></div>
+          </div>
+        </div>
+
       </div>
-      <div class="modal-body">
-        <div id="officerInfo" class="mb-3 small"></div>
-        <table class="table table-bordered" id="voucherTable">
-          <thead class="table-dark text-center">
-            <tr><th>Item</th><th>Per Day (gm)</th><th>Total (gm)</th></tr>
-          </thead>
-          <tbody id="voucherBody"><tr><td colspan="3" class="text-center text-muted">Loading...</td></tr></tbody>
-        </table>
-        <div class="mt-4 d-flex justify-content-between small" id="signatures" style="display:none;">
-          <div><strong>Issued by:</strong> ____________________</div>
-          <div><strong>Received by:</strong> ____________________</div>
+    </main>
+
+    <!-- ================= MODAL ================= -->
+    <div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-dark text-white">
+            <h5 class="modal-title" id="voucherHeading">Voucher</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="officerInfo" class="mb-3 small"></div>
+            <table class="table table-bordered" id="voucherTable">
+              <thead class="table-dark text-center">
+                <tr><th>Item</th><th>Per Day (gm)</th><th>Total (gm)</th></tr>
+              </thead>
+              <tbody id="voucherBody"><tr><td colspan="3" class="text-center text-muted">Loading...</td></tr></tbody>
+            </table>
+            <div class="mt-4 d-flex justify-content-between small" id="signatures" style="display:none;">
+              <div><strong>Issued by:</strong> ____________________</div>
+              <div><strong>Received by:</strong> ____________________</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary" id="printVoucherBtn" style="display:none;">Print</button>
+          </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button class="btn btn-primary" id="printVoucherBtn" style="display:none;">Print</button>
-      </div>
     </div>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+      Website Designed and Hosted by HQWNC / CDIT ©2025. All Rights Reserved.
+    </footer>
+
   </div>
-</div>
-<div class="logout-container">
-    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
-    </div>
-<!-- ============ SCRIPT SECTION ============ -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
 
-  // Pagination utility
-  function paginateTable(tbody, navId, perPage=10) {
-    const rows = Array.from(tbody.querySelectorAll("tr"));
-    if (rows.length <= perPage) return;
-    const nav = document.getElementById(navId);
-    const pages = Math.ceil(rows.length / perPage);
-    let cur = 1;
+  <!-- ================= SCRIPTS ================= -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
 
-    function render() {
-      rows.forEach((r,i) => r.style.display = (i >= (cur-1)*perPage && i < cur*perPage) ? '' : 'none');
-      nav.innerHTML = '';
+    // ===== PAGINATION =====
+    function paginateTable(tbody, navId, perPage=10) {
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      if(rows.length <= perPage) return;
+      const nav = document.getElementById(navId);
+      const pages = Math.ceil(rows.length/perPage);
+      let cur = 1;
 
-      const prev = document.createElement('li');
-      prev.className = 'page-item' + (cur === 1 ? ' disabled' : '');
-      prev.innerHTML = `<a class='page-link' href='#'>&laquo;</a>`;
-      prev.onclick = e => { e.preventDefault(); if(cur > 1){cur--; render();} };
-      nav.appendChild(prev);
+      function render() {
+        rows.forEach((r,i)=>r.style.display=(i>=(cur-1)*perPage && i<cur*perPage)?'':'none');
+        nav.innerHTML='';
+        const prev = document.createElement('li');
+        prev.className='page-item'+(cur===1?' disabled':'');
+        prev.innerHTML=`<a class='page-link' href='#'>&laquo;</a>`;
+        prev.onclick=e=>{e.preventDefault();if(cur>1){cur--;render();}};
+        nav.appendChild(prev);
 
-      for(let i=1;i<=pages;i++){
-        const li = document.createElement('li');
-        li.className = 'page-item' + (i === cur ? ' active' : '');
-        li.innerHTML = `<a class='page-link' href='#'>${i}</a>`;
-        li.onclick = e => { e.preventDefault(); cur = i; render(); };
-        nav.appendChild(li);
+        for(let i=1;i<=pages;i++){
+          const li=document.createElement('li');
+          li.className='page-item'+(i===cur?' active':'');
+          li.innerHTML=`<a class='page-link' href='#'>${i}</a>`;
+          li.onclick=e=>{e.preventDefault(); cur=i; render();};
+          nav.appendChild(li);
+        }
+
+        const next=document.createElement('li');
+        next.className='page-item'+(cur===pages?' disabled':'');
+        next.innerHTML=`<a class='page-link' href='#'>&raquo;</a>`;
+        next.onclick=e=>{e.preventDefault(); if(cur<pages){cur++;render();}};
+        nav.appendChild(next);
       }
-
-      const next = document.createElement('li');
-      next.className = 'page-item' + (cur === pages ? ' disabled' : '');
-      next.innerHTML = `<a class='page-link' href='#'>&raquo;</a>`;
-      next.onclick = e => { e.preventDefault(); if(cur < pages){cur++; render();} };
-      nav.appendChild(next);
+      render();
     }
-    render();
-  }
 
-  document.querySelectorAll("[id^='tbiBody_']").forEach(tb=>{
-    paginateTable(tb, "pageNav_"+tb.id.split('_')[1]);
-  });
-  document.querySelectorAll("[id^='issuedBody_']").forEach(tb=>{
-    paginateTable(tb, "issuedPageNav_"+tb.id.split('_')[1]);
-  });
+    document.querySelectorAll("[id^='tbiBody_']").forEach(tb=>paginateTable(tb,"pageNav_"+tb.id.split('_')[1]));
+    document.querySelectorAll("[id^='issuedBody_']").forEach(tb=>paginateTable(tb,"issuedPageNav_"+tb.id.split('_')[1]));
 
-  // View simple item list (to be issued)
-  document.querySelectorAll(".view-items-btn").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      const res = await fetch(`/raiser/view-ration/${btn.dataset.demand}/${btn.dataset.ration}/${btn.dataset.days}`);
-      const data = await res.json();
-      const body=document.getElementById("voucherBody");
-      body.innerHTML='';
-      if(data.success){
-        data.data.forEach(it=>{
-          const tr=document.createElement('tr');
-          tr.innerHTML=`<td>${it.item}</td><td>${it.per_day}</td><td>${it.total}</td>`;
-          body.appendChild(tr);
-        });
-      }
-      document.getElementById("voucherHeading").innerText="Items Preview";
-      document.getElementById("officerInfo").innerHTML="";
-      document.getElementById("signatures").style.display="none";
-      document.getElementById("printVoucherBtn").style.display="none";
-      new bootstrap.Modal(document.getElementById("voucherModal")).show();
+    // ===== VIEW ITEMS =====
+    document.querySelectorAll(".view-items-btn").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const res=await fetch(`/raiser/view-ration/${btn.dataset.demand}/${btn.dataset.ration}/${btn.dataset.days}`);
+        const data=await res.json();
+        const body=document.getElementById("voucherBody");
+        body.innerHTML='';
+        if(data.success){
+          data.data.forEach(it=>{
+            const tr=document.createElement('tr');
+            tr.innerHTML=`<td>${it.item}</td><td>${it.per_day}</td><td>${it.total}</td>`;
+            body.appendChild(tr);
+          });
+        }
+        document.getElementById("voucherHeading").innerText="Items Preview";
+        document.getElementById("officerInfo").innerHTML="";
+        document.getElementById("signatures").style.display="none";
+        document.getElementById("printVoucherBtn").style.display="none";
+        new bootstrap.Modal(document.getElementById("voucherModal")).show();
+      });
     });
-  });
 
-  // View full voucher (issued)
-  document.querySelectorAll(".view-voucher-btn").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      const row=btn.closest("tr");
-      const info={
-        name:row.children[1].innerText,pno:row.children[0].innerText,
-        rank:row.children[2].innerText,unit:row.children[3].innerText,
-        date:new Date().toLocaleDateString(),days:row.children[5].innerText,
-        ration:row.children[4].innerText
-      };
-      const res=await fetch(`/raiser/view-ration/${btn.dataset.demand}/${btn.dataset.ration}/${btn.dataset.days}`);
+    // ===== VIEW VOUCHER =====
+    document.querySelectorAll(".view-voucher-btn").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const row=btn.closest("tr");
+        const info={name:row.children[1].innerText,pno:row.children[0].innerText,rank:row.children[2].innerText,unit:row.children[3].innerText,date:new Date().toLocaleDateString(),days:row.children[5].innerText,ration:row.children[4].innerText};
+        const res=await fetch(`/raiser/view-ration/${btn.dataset.demand}/${btn.dataset.ration}/${btn.dataset.days}`);
+        const data=await res.json();
+        const body=document.getElementById("voucherBody");
+        body.innerHTML='';
+        if(data.success){
+          data.data.forEach(it=>{
+            const tr=document.createElement('tr');
+            tr.innerHTML=`<td>${it.item}</td><td>${it.per_day}</td><td>${it.total}</td>`;
+            body.appendChild(tr);
+          });
+        }
+        document.getElementById("voucherHeading").innerText=`AAHARIKA (${btn.dataset.demand.toUpperCase()}) Voucher`;
+        document.getElementById("officerInfo").innerHTML=`<table class='table table-borderless'>
+          <tr><th>Name:</th><td>${info.name}</td><th>P.No:</th><td>${info.pno}</td></tr>
+          <tr><th>Rank:</th><td>${info.rank}</td><th>Unit:</th><td>${info.unit}</td></tr>
+          <tr><th>Date:</th><td>${info.date}</td><th>Total Days:</th><td>${info.days}</td></tr>
+          <tr><th>Ration Type:</th><td colspan='3'>${info.ration}</td></tr>
+        </table>`;
+        document.getElementById("signatures").style.display="flex";
+        document.getElementById("printVoucherBtn").style.display="inline-block";
+        new bootstrap.Modal(document.getElementById("voucherModal")).show();
+        document.getElementById("printVoucherBtn").onclick=()=>{
+          const w=window.open('','_blank');
+          w.document.write(`<html><head><title>Voucher</title><link rel='stylesheet' href='/static/css/bootstrap.min.css'></head><body>${document.querySelector('#voucherModal .modal-body').innerHTML}</body></html>`);
+          w.document.close(); w.print();
+        };
+      });
+    });
+
+    // ===== ANALYTICS =====
+    const raisedCount=document.getElementById("raisedCount"),
+          issuedCount=document.getElementById("issuedCount"),
+          pendingCount=document.getElementById("pendingCount"),
+          periodSelect=document.getElementById("periodSelect"),
+          demandCtx=document.getElementById("demandTypeChart"),
+          unitCtx=document.getElementById("unitWiseChart");
+    let demandChart,unitChart;
+
+    async function loadAnalytics(period="monthly"){
+      const res=await fetch(`/issuer/stats?period=${period}`);
       const data=await res.json();
-      const body=document.getElementById("voucherBody");
-      body.innerHTML='';
-      if(data.success){
-        data.data.forEach(it=>{
-          const tr=document.createElement('tr');
-          tr.innerHTML=`<td>${it.item}</td><td>${it.per_day}</td><td>${it.total}</td>`;
-          body.appendChild(tr);
-        });
-      }
-      document.getElementById("voucherHeading").innerText=`AAHARIKA (${btn.dataset.demand.toUpperCase()}) Voucher`;
-      document.getElementById("officerInfo").innerHTML=`<table class='table table-borderless'>
-        <tr><th>Name:</th><td>${info.name}</td><th>P.No:</th><td>${info.pno}</td></tr>
-        <tr><th>Rank:</th><td>${info.rank}</td><th>Unit:</th><td>${info.unit}</td></tr>
-        <tr><th>Date:</th><td>${info.date}</td><th>Total Days:</th><td>${info.days}</td></tr>
-        <tr><th>Ration Type:</th><td colspan='3'>${info.ration}</td></tr>
-      </table>`;
-      document.getElementById("signatures").style.display="flex";
-      document.getElementById("printVoucherBtn").style.display="inline-block";
-      new bootstrap.Modal(document.getElementById("voucherModal")).show();
-      document.getElementById("printVoucherBtn").onclick=()=>{
-        const w=window.open('','_blank');
-        w.document.write(`<html><head><title>Voucher</title>
-        <link rel='stylesheet' href='/static/css/bootstrap.min.css'></head><body>${document.querySelector('#voucherModal .modal-body').innerHTML}</body></html>`);
-        w.document.close();w.print();
-      };
-    });
+      if(data.error)return alert(data.error);
+      raisedCount.textContent=data.summary.total_raised;
+      issuedCount.textContent=data.summary.total_issued;
+      pendingCount.textContent=data.summary.pending;
+
+      const l1=data.type_data.map(x=>x.type),v1=data.type_data.map(x=>x.count);
+      if(demandChart)demandChart.destroy();
+      demandChart=new Chart(demandCtx,{type:'bar',data:{labels:l1,datasets:[{label:'Demands',data:v1,backgroundColor:'#007bff'}]}});
+
+      const l2=data.unit_data.map(x=>x.unit),v2=data.unit_data.map(x=>x.count);
+      if(unitChart)unitChart.destroy();
+      unitChart=new Chart(unitCtx,{type:'pie',data:{labels:l2,datasets:[{data:v2,backgroundColor:['#28a745','#dc3545','#ffc107','#17a2b8','#6610f2']}]}});
+    }
+
+    periodSelect.addEventListener("change",()=>loadAnalytics(periodSelect.value));
+    loadAnalytics();
+
   });
-
-  // Analytics loader
-  const raisedCount=document.getElementById("raisedCount"),
-        issuedCount=document.getElementById("issuedCount"),
-        pendingCount=document.getElementById("pendingCount"),
-        periodSelect=document.getElementById("periodSelect"),
-        demandCtx=document.getElementById("demandTypeChart"),
-        unitCtx=document.getElementById("unitWiseChart");
-  let demandChart,unitChart;
-
-  async function loadAnalytics(period="monthly"){
-    const res=await fetch(`/issuer/stats?period=${period}`);
-    const data=await res.json();
-    if(data.error)return alert(data.error);
-    raisedCount.textContent=data.summary.total_raised;
-    issuedCount.textContent=data.summary.total_issued;
-    pendingCount.textContent=data.summary.pending;
-
-    const l1=data.type_data.map(x=>x.type),v1=data.type_data.map(x=>x.count);
-    if(demandChart)demandChart.destroy();
-    demandChart=new Chart(demandCtx,{type:'bar',data:{labels:l1,datasets:[{label:'Demands',data:v1,backgroundColor:'#007bff'}]}});
-
-    const l2=data.unit_data.map(x=>x.unit),v2=data.unit_data.map(x=>x.count);
-    if(unitChart)unitChart.destroy();
-    unitChart=new Chart(unitCtx,{type:'pie',data:{labels:l2,datasets:[{data:v2,backgroundColor:['#28a745','#dc3545','#ffc107','#17a2b8','#6610f2']}]}});
-  }
-
-  periodSelect.addEventListener("change",()=>loadAnalytics(periodSelect.value));
-  loadAnalytics();
-
-});
-</script>
-{% endblock %}
+  </script>
+</body>
+</html>
