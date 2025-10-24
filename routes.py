@@ -174,7 +174,7 @@ def officer_new_demand():
         )
         db.session.add(demand)
         db.session.commit()
-        flash("✅ Demand submitted successfully!", "success")
+        #flash("✅ Demand submitted successfully!", "success")
         return redirect(url_for("officer_previous_demands"))
 
     elif request.method == "POST":
