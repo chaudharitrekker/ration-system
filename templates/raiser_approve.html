@@ -11,10 +11,17 @@
 <body>
   <!-- HEADER -->
   <header class="header">
-    <div class="logo-section">
-      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" />
-    </div>
-  </header>
+  <div class="logo-section">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo" />
+  </div>
+
+  <div class="header-right">
+    <span class="welcome-text">Welcome {{ session.get('username', '') }}</span>
+    <a href="{{ url_for('logout') }}" class="logout-icon" title="Logout">
+      <i class="fa-solid fa-right-from-bracket"></i>
+    </a>
+  </div>
+</header>
 
   <!-- BACKGROUND -->
   <div class="background">
