@@ -79,7 +79,41 @@
                   {% endfor %}
                 </tbody>
               </table>
-              <ul class="pagination pagination-sm justify-content-center" id="pageNav_first15"></ul>
+              {% if pagination.pages > 1 %}
+  <nav aria-label="Page navigation" class="pagination-container">
+    <ul class="pagination justify-content-center">
+      {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ pagination.prev_num }}&search={{ search }}">«</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">«</span></li>
+      {% endif %}
+
+      {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+        {% if p %}
+          {% if p == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ p }}&search={{ search }}">{{ p }}</a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ pagination.next_num }}&search={{ search }}">»</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">»</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
             </div>
             <button type="submit" class="btn btn-success mt-3">Raise Demand</button>
           </form>
@@ -117,7 +151,41 @@
                   {% endfor %}
                 </tbody>
               </table>
-              <ul class="pagination pagination-sm justify-content-center" id="pageNav_second15"></ul>
+              {% if pagination.pages > 1 %}
+  <nav aria-label="Page navigation" class="pagination-container">
+    <ul class="pagination justify-content-center">
+      {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ pagination.prev_num }}&search={{ search }}">«</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">«</span></li>
+      {% endif %}
+
+      {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+        {% if p %}
+          {% if p == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ p }}&search={{ search }}">{{ p }}</a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ pagination.next_num }}&search={{ search }}">»</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">»</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
             </div>
             <button type="submit" class="btn btn-success mt-3">Raise Demand</button>
           </form>
@@ -155,7 +223,41 @@
                   {% endfor %}
                 </tbody>
               </table>
-              <ul class="pagination pagination-sm justify-content-center" id="pageNav_dry"></ul>
+              {% if pagination.pages > 1 %}
+  <nav aria-label="Page navigation" class="pagination-container">
+    <ul class="pagination justify-content-center">
+      {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ pagination.prev_num }}&search={{ search }}">«</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">«</span></li>
+      {% endif %}
+
+      {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+        {% if p %}
+          {% if p == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ p }}&search={{ search }}">{{ p }}</a>
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ pagination.next_num }}&search={{ search }}">»</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">»</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
             </div>
             <button type="submit" class="btn btn-success mt-3">Raise Demand</button>
           </form>
@@ -263,51 +365,7 @@
       });
     });
 
-    // 📄 Pagination (client-side)
-    function paginateTable(tbodyId, navId, perPage=10) {
-      const tbody = document.getElementById(tbodyId);
-      if (!tbody) return;
-      const rows = Array.from(tbody.querySelectorAll("tr"));
-      const nav = document.getElementById(navId);
-      if (!nav || rows.length <= perPage) return;
-      
-      const pages = Math.ceil(rows.length / perPage);
-      let cur = 1;
-
-      function render() {
-        rows.forEach((r, i) => {
-          r.style.display = (i >= (cur - 1) * perPage && i < cur * perPage) ? "" : "none";
-        });
-        nav.innerHTML = '';
-
-        const prev = document.createElement('li');
-        prev.className = 'page-item' + (cur === 1 ? ' disabled' : '');
-        prev.innerHTML = `<a class='page-link' href='#'>&laquo;</a>`;
-        prev.onclick = e => { e.preventDefault(); if (cur > 1) { cur--; render(); } };
-        nav.appendChild(prev);
-
-        for (let i = 1; i <= pages; i++) {
-          const li = document.createElement('li');
-          li.className = 'page-item' + (i === cur ? ' active' : '');
-          li.innerHTML = `<a class='page-link' href='#'>${i}</a>`;
-          li.onclick = e => { e.preventDefault(); cur = i; render(); };
-          nav.appendChild(li);
-        }
-
-        const next = document.createElement('li');
-        next.className = 'page-item' + (cur === pages ? ' disabled' : '');
-        next.innerHTML = `<a class='page-link' href='#'>&raquo;</a>`;
-        next.onclick = e => { e.preventDefault(); if (cur < pages) { cur++; render(); } };
-        nav.appendChild(next);
-      }
-
-      render();
-    }
-
-    // ✅ Initialize pagination
-    paginateTable("tbody_first15", "pageNav_first15");
-    paginateTable("tbody_second15", "pageNav_second15");
-    paginateTable("tbody_dry", "pageNav_dry");
+    
 
   });
   </script>
