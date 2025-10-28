@@ -27,7 +27,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .logo-section {
@@ -41,6 +43,30 @@ body {
   object-fit: contain;
 }
 
+/* Right side of header (welcome text + logout) */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.welcome-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.logout-icon {
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  transition: color 0.3s;
+  text-decoration: none;
+}
+
+.logout-icon:hover {
+  color: #c9c9c9;
+}
 /* FORM SECTION */
 .form-section {
   max-width: 1200px;

@@ -162,6 +162,12 @@ main {
   line-height: 1.4;
 }
 
+/* Pagination (Bootstrap small style is used, but add container-level styles here) */
+.pagination {
+  margin: 10px 0 0;
+  padding-left: 0;
+}
+
 /* FOOTER */
 .footer {
   text-align: center;
