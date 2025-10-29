@@ -323,15 +323,34 @@
 
     // 🧾 AJAX Raise Demand
     document.querySelectorAll(".raise-form").forEach(form => {
-      form.addEventListener("submit", e => {
-        e.preventDefault();
-        const fd = new FormData(form);
-        fetch(form.action, {method:"POST", body:fd})
-          .then(r => r.text())
-          .then(() => alert("✅ Demand raised successfully!"))
-          .catch(err => alert("❌ Error: " + err));
-      });
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const fd = new FormData(form);
+      const selectedCheckboxes = form.querySelectorAll("input[type='checkbox']:checked");
+
+      if (selectedCheckboxes.length === 0) {
+        alert("⚠️ Please select at least one entry to raise demand!");
+        return;
+      }
+
+      try {
+        const res = await fetch(form.action, { method: "POST", body: fd });
+        if (!res.ok) throw new Error("Server error");
+
+        alert("✅ Demand raised successfully!");
+
+        // 🗑 Remove selected rows from table
+        selectedCheckboxes.forEach(cb => {
+          const row = cb.closest("tr");
+          if (row) row.remove();
+        });
+
+      } catch (err) {
+        alert("❌ Error: " + err);
+      }
     });
+  });
 
     // 📋 View Ration
     document.querySelectorAll(".view-ration-btn").forEach(btn => {

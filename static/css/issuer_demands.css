@@ -41,6 +41,7 @@ body {
   gap: 20px;
 }
 
+
 .welcome-text {
   color: white;
   font-weight: 600;
@@ -162,6 +163,7 @@ body {
   border-color: #007bff;
   color: white;
 }
+
 
 /* ✅ FOOTER */
 .footer {
