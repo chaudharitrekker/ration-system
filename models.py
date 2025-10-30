@@ -54,6 +54,9 @@ class OfficerDemand(db.Model):
     # new columns for 1st and 2nd half of month
     availability_first15 = db.Column(db.Integer, nullable=True)
     availability_second15 = db.Column(db.Integer, nullable=True)
+    officer_type = db.Column(db.String(50), nullable=True)  # new dropdown field
+    total_days_available = db.Column(db.Integer, nullable=True)  # sum of both halves
+
 
     created_by = db.Column(db.String(20))
 

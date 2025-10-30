@@ -48,7 +48,26 @@
           <input type="hidden" name="rank" value="{{ session.get('rank', 'Unknown Rank') }}">
         </div>
       </div>
-
+      <div class="form-row">
+      <div class="form-group">
+        <label>Officer Type</label>
+        <select name="officer_type" class="form-control">
+          <option value="">-- Select --</option>
+          <option value="Submariner">Submariner</option>
+          <option value="Diver">Diver</option>
+          <option value="Flying Officer">Flying Officer</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Available Days (1st 15 Days)</label>
+        <input type="number" name="availability_first15" class="form-control" min="0" max="15">
+      </div>
+      <div class="form-group">
+        <label>Available Days (2nd 15 Days)</label>
+        <input type="number" name="availability_second15" class="form-control" min="0" max="16">
+      </div>
+    </div>
       <!-- Demand Form Fields (WTForms) -->
       <div class="form-row">
         <div class="form-group">
